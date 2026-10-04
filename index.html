@@ -224,6 +224,8 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
   transition:transform .08s ease,box-shadow .08s ease;
   position:relative;
 }
+.tab-caret{font-size:.68rem;margin-left:5px;opacity:.9;display:inline-block;transition:transform .15s}
+.tab.dd-open .tab-caret{transform:rotate(180deg)}
 .tab:hover{transform:translateY(-5px);box-shadow:0 8px 0 rgba(0,0,0,0.22),0 12px 18px rgba(0,0,0,0.16)}
 .tab:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.22),0 2px 6px rgba(0,0,0,0.1)}
 .tab.active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.22),0 2px 6px rgba(0,0,0,0.1);filter:brightness(1.08)}
@@ -298,26 +300,17 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 
 /* DASHBOARD ĐỘNG — thanh chọn tiêu chí nhóm (segmented control) */
 .dash-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:18px}
-.dash-toolbar-label{font-size:.78rem;font-weight:700;color:var(--text2)}
-/* Droplist "Xem theo": nút trigger hiện tiêu chí đang chọn, rê chuột vào mới xổ danh sách,
-   rời chuột ra tự ẩn. Dùng :hover + :focus-within (focus-within để đi bằng Tab/chạm trên
-   điện thoại vẫn mở được) — không cần JS đóng/mở, re-render tab là menu tự đóng. */
-.dash-dd{position:relative;display:inline-block}
-.dash-dd-trigger{display:inline-flex;align-items:center;gap:10px;min-width:210px;justify-content:space-between;
-  border:1px solid rgba(0,0,0,.12);padding:8px 14px;font-size:.82rem;font-weight:600;
-  font-family:'Be Vietnam Pro',sans-serif;border-radius:9px;cursor:pointer;transition:all .15s;
-  background:linear-gradient(135deg,var(--sg-d1,#22d3ee),var(--sg-d2,#0e7490));color:#fff;
-  box-shadow:0 3px 8px var(--sg-sh,rgba(14,116,144,.35)),inset 0 1px 0 rgba(255,255,255,.25)}
-.dash-dd-caret{font-size:.7rem;opacity:.85;transition:transform .15s}
-.dash-dd:hover .dash-dd-caret,.dash-dd:focus-within .dash-dd-caret{transform:rotate(180deg)}
-.dash-dd:hover .dash-dd-trigger,.dash-dd:focus-within .dash-dd-trigger{transform:translateY(-1px);
-  box-shadow:0 5px 14px var(--sg-sh,rgba(14,116,144,.45)),inset 0 1px 0 rgba(255,255,255,.25)}
-/* Lớp .dash-dd-menu trong suốt, chỉ để chừa 6px nối liền trigger ↔ danh sách:
-   không có nó, chuột đi qua khe hở là menu tắt giữa chừng. */
-.dash-dd-menu{position:absolute;top:100%;left:0;z-index:80;padding-top:6px;
+/* Menu chọn tiêu chí nhóm của tab Dashboard động — thả xuống từ chính nút tab
+   "🎯 Dashboard động" (tab này không còn thanh "Xem theo" bên trong nội dung).
+   Mở: bấm nút tab (switchTab → openDashDD gắn .open). Đóng: chọn 1 tiêu chí, rời chuột khỏi
+   menu, bấm ra ngoài, Esc, hoặc bấm lại nút tab khi menu đang mở.
+   position:fixed + JS định vị theo getBoundingClientRect của nút tab (positionDashDD) — KHÔNG
+   dùng absolute bên trong .tabs: ở ≤600px .tabs có overflow-x:auto nên menu sẽ bị cắt.
+   z-index 95: trên thanh tab sticky (90), dưới topbar (100). */
+.dash-dd{position:fixed;z-index:95;
   opacity:0;visibility:hidden;transform:translateY(-6px);transition:opacity .15s,transform .15s,visibility .15s}
-.dash-dd:hover .dash-dd-menu,.dash-dd:focus-within .dash-dd-menu{opacity:1;visibility:visible;transform:none}
-.dash-dd-list{display:flex;flex-direction:column;gap:4px;min-width:230px;max-width:calc(100vw - 32px);
+.dash-dd.open{opacity:1;visibility:visible;transform:none}
+.dash-dd-list{display:flex;flex-direction:column;gap:4px;min-width:230px;max-width:calc(100vw - 24px);
   background:#fff;border:1px solid var(--border);border-radius:11px;padding:6px;
   box-shadow:0 12px 32px rgba(0,0,0,.16),0 2px 6px rgba(0,0,0,.08)}
 /* Mỗi tiêu chí một màu nền riêng (biến --sg-bg1/--sg-bg2 nhạt khi thường, --sg-d1/--sg-d2 đậm khi chọn)
@@ -339,7 +332,7 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 .dash-dd [data-d="garage"]   {--sg-bg1:#cffafe;--sg-bg2:#f0fdff;--sg-fg:#0e7490;--sg-d1:#22d3ee;--sg-d2:#0e7490;--sg-sh:rgba(14,116,144,.35)}
 .dash-dd [data-d="trangthai"]{--sg-bg1:#ffe4e6;--sg-bg2:#fff5f6;--sg-fg:#be123c;--sg-d1:#fb7185;--sg-d2:#be123c;--sg-sh:rgba(190,18,60,.35)}
 .dash-dd [data-d="mucTien"]  {--sg-bg1:#ffedd5;--sg-bg2:#fff7ed;--sg-fg:#c2410c;--sg-d1:#fb923c;--sg-d2:#c2410c;--sg-sh:rgba(194,65,12,.35)}
-@media(max-width:600px){.dash-dd,.dash-dd-trigger{width:100%}.dash-dd-list{min-width:100%}}
+@media(max-width:600px){.dash-dd-list{min-width:220px}}
 .dash-info{
   font-size:.75rem;font-weight:600;color:#0e7490;white-space:nowrap;
   background:rgba(255,255,255,.75);border:1px solid rgba(14,116,144,.25);
@@ -1010,12 +1003,18 @@ table.ig-hs tr:nth-child(even) td{background:var(--surface2)}
   <div class="content">
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('dashboard',this)">🎯 Dashboard động</button>
+      <button class="tab active" id="tab-btn-dashboard" onclick="switchTab('dashboard',this)"
+              title="Bấm để chọn tiêu chí xem">🎯 Dashboard động<span class="tab-caret">▾</span></button>
       <button class="tab" onclick="switchTab('overview',this)">📊 Tổng quan</button>
       <button class="tab" onclick="switchTab('gdv',this)">👤 Theo GĐV</button>
       <button class="tab" onclick="switchTab('baocao',this)">📋 Báo cáo XO</button>
       <button class="tab" onclick="switchTab('cldv',this)">💡 Đề xuất cải tiến CLDV</button>
       <button class="tab" onclick="switchTab('search',this)">🔍 Tra cứu tiến trình</button>
+    </div>
+    <!-- Menu tiêu chí nhóm của tab Dashboard động: thả xuống từ nút tab, position:fixed nên
+         vị trí do positionDashDD() gán; danh sách mục do buildDashDimMenu() sinh từ DASH_DIM_BTN. -->
+    <div class="dash-dd" id="dash-dim-dd" onmouseleave="closeDashDD()">
+      <div class="dash-dd-list" id="dash-dim-list"></div>
     </div>
 
     <div id="tab-dashboard" class="tab-pane"></div>
@@ -2608,8 +2607,59 @@ function computeDashGroups(data,dim,forTable){
 
 function setDashDim(dim){
   DASH_DIM=dim;
+  closeDashDD();                               // chọn xong là đóng menu
   if(_dashLastS)renderDashboard(_dashLastS);
 }
+
+// ─── Menu tiêu chí nhóm: thả xuống từ nút tab "🎯 Dashboard động" ────────────
+// Tab Dashboard động không còn thanh "Xem theo" bên trong; bấm nút tab là menu xổ ra để chọn
+// tiêu chí, chọn xong menu đóng. Bấm lại nút tab (khi đang ở tab này) thì bật/tắt menu.
+function dashDDEl(){return document.getElementById('dash-dim-dd')}
+function dashTabBtn(){return document.getElementById('tab-btn-dashboard')}
+function dashDDOpen(){const d=dashDDEl();return!!d&&d.classList.contains('open')}
+
+// Danh sách mục sinh từ DASH_DIM_BTN, gọi lại mỗi lần mở để dấu ✓ theo đúng DASH_DIM
+function buildDashDimMenu(){
+  const list=document.getElementById('dash-dim-list');
+  if(!list)return;
+  list.innerHTML=DASH_DIM_BTN.map(([d,lb])=>
+    `<button type="button" data-d="${d}" class="${DASH_DIM===d?'active':''}" onclick="setDashDim('${d}')">${lb}</button>`).join('');
+}
+
+// Menu là position:fixed → tự gán toạ độ ngay dưới nút tab, kẹp lại cho khỏi tràn mép phải
+function positionDashDD(){
+  const d=dashDDEl(),b=dashTabBtn();
+  if(!d||!b)return;
+  const r=b.getBoundingClientRect();
+  const w=d.offsetWidth||230;
+  d.style.left=Math.max(8,Math.min(r.left,window.innerWidth-w-12))+'px';
+  d.style.top=(r.bottom+8)+'px';
+}
+
+function openDashDD(){
+  const d=dashDDEl();if(!d)return;
+  buildDashDimMenu();
+  positionDashDD();          // đo trước khi hiện: visibility:hidden vẫn có kích thước thật
+  d.classList.add('open');
+  const b=dashTabBtn();if(b)b.classList.add('dd-open');
+}
+function closeDashDD(){
+  const d=dashDDEl();if(d)d.classList.remove('open');
+  const b=dashTabBtn();if(b)b.classList.remove('dd-open');
+}
+
+// Bỏ qua click trên chính thanh tab: cú bấm "Dashboard động" vừa mở menu sẽ bubble tới đây,
+// không loại nó ra thì menu mở rồi đóng ngay trong cùng một cú bấm.
+document.addEventListener('click',e=>{
+  if(!dashDDOpen())return;
+  if(dashDDEl().contains(e.target))return;
+  if(e.target.closest&&e.target.closest('.tabs .tab'))return;
+  closeDashDD();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDashDD();});
+// Cuộn/đổi kích thước thì bám lại nút tab (nút dính theo .tabs sticky nên toạ độ đổi)
+window.addEventListener('scroll',()=>{if(dashDDOpen())positionDashDD()},{passive:true});
+window.addEventListener('resize',()=>{if(dashDDOpen())positionDashDD()});
 
 // Bảng nhiều mục thì co dòng lại cho đến khi khung hiện được ít nhất chừng này dòng
 const DASH_MIN_ROWS=10;
@@ -2835,15 +2885,6 @@ function renderDashboard(s){
 
   el.innerHTML=`
     <div class="dash-toolbar">
-      <span class="dash-toolbar-label">Xem theo:</span>
-      <div class="dash-dd">
-        <button type="button" class="dash-dd-trigger" data-d="${DASH_DIM}">
-          <span>${DASH_DIM_BTN.find(b=>b[0]===DASH_DIM)[1]}</span><span class="dash-dd-caret">▾</span>
-        </button>
-        <div class="dash-dd-menu"><div class="dash-dd-list">
-          ${DASH_DIM_BTN.map(([d,lb])=>`<button type="button" data-d="${d}" class="${DASH_DIM===d?'active':''}" onclick="setDashDim('${d}')">${lb}</button>`).join('')}
-        </div></div>
-      </div>
       <span class="dash-info">${fmtN(s.rows.length)} hồ sơ · nhóm theo ${DASH_DIM_LABEL[DASH_DIM]}${
         dimHasMoneyTable(DASH_DIM)
           ?` · biểu đồ Top ${DASH_TOP_N[DASH_DIM]} · bảng: nhóm có tiền ước ≥ 100 triệu`
@@ -2888,12 +2929,18 @@ function renderDashboard(s){
 
 // ─── TAB SWITCH ──────────────────────────────────────────────────────────────
 function switchTab(name,btn){
+  // Đang ở sẵn tab này? (quyết định bật/tắt menu tiêu chí của Dashboard động)
+  const sameTab=document.getElementById('tab-'+name).style.display!=='none';
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   ['dashboard','overview','gdv','baocao','cldv','search'].forEach(t=>{
     document.getElementById('tab-'+t).style.display=t===name?'block':'none';
   });
-  if(name==='dashboard')syncDashTableHeight();   // đo lại chiều cao bảng khi tab vừa hiện
+  if(name==='dashboard'){
+    syncDashTableHeight();                    // đo lại chiều cao bảng khi tab vừa hiện
+    if(sameTab&&dashDDOpen())closeDashDD();   // bấm lại khi menu đang mở → đóng
+    else openDashDD();                        // xổ menu tiêu chí để người dùng chọn
+  }else closeDashDD();
 }
 
 // ─── INFOGRAPHIC TAB ─────────────────────────────────────────────────────────
