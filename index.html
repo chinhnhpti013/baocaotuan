@@ -163,17 +163,20 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 #dashboard{display:none}
 .topbar{
   background:linear-gradient(135deg,#0a1929,#1565C0);color:#fff;
-  padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:64px;display:flex;align-items:center;justify-content:flex-start;
   position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3);
 }
-.topbar-center{flex:1;min-width:0;text-align:center}
-.topbar-title{text-align:center}
+/* Tiêu đề đặt sát logo, cách đúng 12mm (theo yêu cầu) */
+.topbar-center{flex:0 1 auto;min-width:0;text-align:left;margin-left:12mm}
+.topbar-title{text-align:left}
+.topbar-meta{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
 .topbar-logo{
   height:80px;width:auto;display:block;object-fit:contain;
   background:transparent;
 }
 .topbar-title{font-size:.88rem;font-weight:600;color:#fff;line-height:1.3}
-.topbar-file{font-size:.72rem;color:rgba(255,255,255,.4);font-family:'JetBrains Mono',monospace;margin-left:4px}
+/* Tên file nguồn không hiển thị nữa (chỉ giữ element cho JS ghi vào) */
+.topbar-file{display:none}
 .file-date-badge{
   display:inline-flex;align-items:center;gap:5px;
   font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:20px;
@@ -198,17 +201,9 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 .btn-refresh:hover{background:rgba(66,133,244,.38)}
 .btn-refresh:disabled{opacity:.5;cursor:not-allowed}
 
-/* padding-top nhỏ để thanh tab nằm sát topbar, nhường không gian cho vùng dữ liệu */
-.content{padding:10px 28px 24px;max-width:1400px;margin:0 auto}
+/* Thanh tab đã nằm trong topbar nên content bắt đầu ngay bằng nội dung tab */
+.content{padding:16px 28px 24px;max-width:1400px;margin:0 auto}
 
-/* Khối bên phải topbar: số hồ sơ đang hiển thị + nút tải file khác */
-.topbar-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
-.topbar-count{
-  font-size:.78rem;font-weight:700;white-space:nowrap;
-  color:#fff;background:rgba(255,255,255,.16);
-  padding:5px 13px;border-radius:20px;border:1px solid rgba(255,255,255,.35);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.2);
-}
 
 /* TABS — 3D Press Button */
 .tabs{display:flex;gap:8px;margin-bottom:12px;background:rgba(255,255,255,0.55);
@@ -238,16 +233,41 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 .tabs .tab:nth-child(6){background:linear-gradient(160deg,#fbbf24 0%,#b45309 100%)} /* Tra cứu */
 .tabs .tab:nth-child(7){background:linear-gradient(160deg,#818cf8 0%,#3730a3 100%)} /* Tiện ích */
 
-/* Thanh tab dính ngay dưới topbar khi cuộn (top = chiều cao topbar 64px, z-index < 100 để trượt
-   xuống dưới topbar). Chỉ bật từ 601px trở lên: topbar mobile dùng height:auto + flex-wrap nên
-   chiều cao thay đổi, chốt cứng top sẽ lệch. Nền đục hơn mức mặc định để nội dung cuộn phía sau
-   không lộ qua thanh tab. */
-@media(min-width:601px){
-  .tabs{
-    position:sticky;top:64px;z-index:90;
-    background:rgba(255,255,255,.9);
-    box-shadow:0 4px 16px rgba(0,0,0,.12);
-  }
+/* Thanh tab đã chuyển vào trong .topbar (topbar sticky nên tab luôn hiện khi cuộn — không cần
+   sticky riêng nữa). Đẩy sang phải tiêu đề, tự co bằng fitTopTabs() để 7 tab vừa đúng 1 hàng. */
+.topbar .tabs{
+  margin:0 0 0 auto;flex:0 1 auto;min-width:0;width:auto;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+  border-radius:12px;padding:6px;gap:6px;overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+}
+.topbar .tabs .tab{flex:0 0 auto}
+/* 6 mức co **dồn** — fitTopTabs() thêm dần tới khi hết tràn; mức sau ghi đè mức trước */
+.topbar .tabs.tt-c1{gap:5px;padding:5px}
+.topbar .tabs.tt-c1 .tab{padding:8px 15px;font-size:.78rem}
+.topbar .tabs.tt-c2{gap:4px;padding:5px}
+.topbar .tabs.tt-c2 .tab{padding:7px 11px;font-size:.74rem}
+.topbar .tabs.tt-c3{gap:4px;padding:4px}
+.topbar .tabs.tt-c3 .tab{padding:6px 9px;font-size:.70rem}
+.topbar .tabs.tt-c4{gap:3px;padding:4px}
+.topbar .tabs.tt-c4 .tab{padding:5px 7px;font-size:.65rem;
+  box-shadow:0 4px 0 rgba(0,0,0,.22),0 6px 10px rgba(0,0,0,.14)}
+.topbar .tabs.tt-c5{gap:3px;padding:3px}
+.topbar .tabs.tt-c5 .tab{padding:4px 5px;font-size:.58rem;
+  box-shadow:0 3px 0 rgba(0,0,0,.22),0 4px 8px rgba(0,0,0,.12)}
+.topbar .tabs.tt-c6{gap:2px;padding:3px}
+.topbar .tabs.tt-c6 .tab{padding:4px 4px;font-size:.53rem;
+  box-shadow:0 2px 0 rgba(0,0,0,.22),0 3px 6px rgba(0,0,0,.12)}
+/* Phao cứu sinh: hết mức co mà vẫn tràn (cửa sổ rất hẹp) thì cho cuộn ngang, không cắt mất tab */
+.topbar .tabs.tt-scroll{overflow-x:auto;scrollbar-width:none}
+.topbar .tabs.tt-scroll::-webkit-scrollbar{display:none}
+/* Dưới ~1150px, tiêu đề + 7 tab không còn đủ chỗ trên cùng 1 hàng (đo thật: cần ~662px cho tab ở
+   mức co nhỏ nhất nhưng chỉ còn ~565px) → cho topbar xuống hàng, thanh tab chiếm trọn hàng dưới
+   để vẫn hiện đủ 7 tab thay vì bị cắt. */
+@media(min-width:601px) and (max-width:1150px){
+  .topbar{flex-wrap:wrap;height:auto;padding:6px 16px 8px}
+  .topbar-center{margin-left:8mm}
+  .topbar .tabs{flex:1 1 100%;margin:0}
 }
 
 /* Nền nội dung từng tab — pastel dịu cùng tông màu nút tab */
@@ -711,19 +731,13 @@ table.ig-hs tr:nth-child(even) td{background:var(--surface2)}
   /* Topbar */
   .topbar{height:auto;min-height:50px;padding:8px 10px;gap:6px;flex-wrap:wrap}
   .topbar-logo{font-size:.55rem;padding:3px 5px;display:none}
-  .topbar-center{flex:1;min-width:0}
+  .topbar-center{flex:1 1 100%;min-width:0;margin-left:0}
   .topbar-title{font-size:.72rem;line-height:1.25;white-space:normal}
-  .topbar-file{font-size:.62rem}
-  .btn-reset{font-size:.68rem;padding:5px 9px}
-  .btn-label-full{display:none}
-  .btn-label-short{display:inline!important}
 
-  .topbar-right{gap:6px}
-  .topbar-count{font-size:.66rem;padding:3px 9px}
-
-  /* Tabs — cuộn ngang, ẩn scrollbar */
+  /* Tabs — hàng riêng trong topbar, cuộn ngang, ẩn scrollbar */
+  .topbar .tabs{flex:1 1 100%;margin:0;border-radius:10px}
   .tabs{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;
-    scrollbar-width:none;flex-wrap:nowrap;border-radius:10px;padding:5px;gap:4px;margin-bottom:8px}
+    scrollbar-width:none;flex-wrap:nowrap;border-radius:10px;padding:5px;gap:4px;margin-bottom:0}
   .tabs::-webkit-scrollbar{display:none}
   .tab{padding:6px 9px;font-size:.68rem;flex-shrink:0}
 
@@ -1035,21 +1049,15 @@ table.ig-hs tr:nth-child(even) td{background:var(--surface2)}
   <div class="topbar">
     <img class="topbar-logo" src="assets/logo-ptisos.png" alt="PTISOS"/>
     <div class="topbar-center">
-      <div class="topbar-title">PTISOS - Văn phòng Miền Bắc - Phòng Khu vực Quảng Ninh</div>
-      <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px">
+      <div class="topbar-title">Báo cáo tuần - Phòng CH&amp; Giám định KV Quảng Ninh</div>
+      <div class="topbar-meta">
+        <!-- #topbar-file giữ lại (ẩn) để _applyDriveRaw/handleFile vẫn ghi được, không hiển thị -->
         <span class="topbar-file" id="topbar-file"></span>
         <span id="file-date-badge"></span>
       </div>
     </div>
-    <div class="topbar-right">
-      <span class="topbar-count" id="record-count"></span>
-      <button class="btn-reset" onclick="resetApp()"><span class="btn-label-full">↩ Tải file khác</span><span class="btn-label-short" style="display:none">↩</span></button>
-    </div>
-  </div>
-
-  <div class="content">
-    <!-- Tabs -->
-    <div class="tabs">
+    <!-- 7 tab nằm ngay trên topbar, tự co bằng fitTopTabs() để vừa đủ 1 hàng -->
+    <div class="tabs" id="main-tabs">
       <button class="tab active" id="tab-btn-dashboard" onclick="switchTab('dashboard',this)"
               title="Bấm để chọn tiêu chí xem">🎯 Dashboard động<span class="tab-caret">▾</span></button>
       <button class="tab" onclick="switchTab('overview',this)">📊 Tổng quan</button>
@@ -1059,6 +1067,9 @@ table.ig-hs tr:nth-child(even) td{background:var(--surface2)}
       <button class="tab" onclick="switchTab('search',this)">🔍 Tra cứu tiến trình</button>
       <button class="tab" onclick="switchTab('tienich',this)">🧰 Tiện ích</button>
     </div>
+  </div>
+
+  <div class="content">
     <!-- Menu tiêu chí nhóm của tab Dashboard động: thả xuống từ nút tab, position:fixed nên
          vị trí do positionDashDD() gán; danh sách mục do buildDashDimMenu() sinh từ DASH_DIM_BTN. -->
     <div class="dash-dd" id="dash-dim-dd" onmouseleave="closeDashDD()">
@@ -1708,13 +1719,36 @@ function _buildDualNvBtChart(canvasId,labels,dthuData,tlbtData,cy){
 // ─── RENDER ──────────────────────────────────────────────────────────────────
 function renderAll(){
   const s=computeStats(RAW);
-  document.getElementById('record-count').textContent=`📊 ${fmtN(RAW.length)} hồ sơ`;
   destroyCharts();
   renderDashboard(s);renderOverview(s);renderGdv(s);renderBaoCao(s);renderCLDV(s);renderSearch();
   renderTienich();
+  fitTopTabs();
   // Tải sheet TLBT song song (không block render chính)
   loadTlbtSheet();
 }
+
+/* ── Thanh tab trong topbar: tự co để 7 tab vừa đúng 1 hàng ───────────────────
+   Thêm dồn các mức .tt-c1…tt-c6 (giảm padding → cỡ chữ) tới khi hết tràn;
+   vẫn tràn thì bật .tt-scroll cho cuộn ngang thay vì cắt mất tab.
+   Phải chạy lại sau document.fonts.ready: lần đo đầu webfont Be Vietnam Pro chưa tải
+   xong nên bề ngang chữ đo hụt → chọn mức co quá nhẹ. */
+const TT_STEPS=['tt-c1','tt-c2','tt-c3','tt-c4','tt-c5','tt-c6'];
+function fitTopTabs(){
+  const el=document.getElementById('main-tabs');
+  if(!el) return;
+  TT_STEPS.forEach(c=>el.classList.remove(c));
+  el.classList.remove('tt-scroll');
+  if(el.offsetWidth===0) return;             // topbar đang ẩn (màn upload/loading)
+  if(window.innerWidth<=600) return;         // mobile: tab chiếm cả hàng, cuộn ngang
+  for(const c of TT_STEPS){
+    if(el.scrollWidth<=el.clientWidth+1) return;
+    el.classList.add(c);
+  }
+  if(el.scrollWidth>el.clientWidth+1) el.classList.add('tt-scroll');
+}
+let _ttTid=0;
+window.addEventListener('resize',()=>{clearTimeout(_ttTid);_ttTid=setTimeout(fitTopTabs,120)});
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitTopTabs);
 
 function kpi(val,label,sub,color){
   return`<div class="kpi ${color}"><div class="kpi-label">${label}</div><div class="kpi-val">${val}</div>${sub?`<div class="kpi-sub">${sub}</div>`:''}</div>`;

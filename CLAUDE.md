@@ -89,7 +89,7 @@ Cột quan trọng:
 > Tab "Cảnh báo" (`tab-warnings`) đã bị xóa (06/2026) — các bảng HS tồn >90 ngày và GĐV nguy hiểm đã có trong tab Báo cáo XO và tab Tổng quan.
 > Khối "Đánh giá Tổng quan" (`generateAnalysis(s)`) đã bị xóa hoàn toàn (09/2026) theo yêu cầu — tab Tổng quan nay kết thúc ở khối Infographic theo địa bàn. `renderInfographic()` không còn nhận tham số `s`.
 > Tab "Tổng hợp cảnh báo" (`tab-infographic`) đã bị xóa (09/2026) — báo cáo "BÁO CÁO TIẾN ĐỘ GIẢI QUYẾT HỒ SƠ TỒN ĐỌNG PTI SOS" (Infographic theo địa bàn) đã chuyển sang cuối tab Tổng quan. **Thứ tự nút tab hiện tại (09/2026)**: **Dashboard động** → Tổng quan → Theo GĐV → Báo cáo XO → Đề xuất cải tiến CLDV → Tra cứu tiến trình → **Tiện ích** (thêm 11/2026, nút tab thứ 7). Dashboard động là tab **mặc định mở khi vào trang** (`class="tab active"` + `#tab-dashboard` không có `display:none`).
-> ⚠️ Khi đổi thứ tự tab phải sửa đồng bộ **4 chỗ**: (1) thứ tự `<button class="tab">`, (2) thứ tự `<div id="tab-...">` kèm `style="display:none"` (đúng 1 pane hiện, 1 nút `active`, và 2 cái phải cùng trỏ 1 tab), (3) CSS `.tabs .tab:nth-child(n)` — đánh số theo **vị trí**, không theo tab, nên phải gán lại màu để mỗi tab giữ đúng màu cũ, (4) mảng trong `switchTab()`.
+> ⚠️ Khi đổi thứ tự tab phải sửa đồng bộ **4 chỗ** (nhóm nút tab nay nằm trong `.topbar`, id `#main-tabs`): (1) thứ tự `<button class="tab">`, (2) thứ tự `<div id="tab-...">` kèm `style="display:none"` (đúng 1 pane hiện, 1 nút `active`, và 2 cái phải cùng trỏ 1 tab), (3) CSS `.tabs .tab:nth-child(n)` — đánh số theo **vị trí**, không theo tab, nên phải gán lại màu để mỗi tab giữ đúng màu cũ, (4) mảng trong `switchTab()`.
 
 ### Tiêu chí nhóm của tab Dashboard động
 
@@ -265,16 +265,21 @@ Mỗi tab có màu gradient riêng, hiệu ứng nổi/nhấn kiểu nút 3D v�
 
 **Nền nội dung tab (`.tab-pane`)**: mỗi tab có nền gradient pastel dịu cùng tông màu nút tab (xanh dương / xanh lá / tím / cyan / hồng nhạt), bo góc 16px, viền trắng mờ.
 
-**Thanh tab dính dưới header (09/2026)**: `.tabs` có `position:sticky; top:64px; z-index:90` — chỉ bật trong `@media(min-width:601px)`.
-- `top:64px` = đúng `height` cố định của `.topbar`; **nếu đổi chiều cao topbar phải sửa đồng thời giá trị này**.
-- `z-index:90` < `.topbar` (100) để thanh tab trượt xuống *dưới* topbar, không đè lên.
-- Nền khi sticky nâng lên `rgba(255,255,255,.9)` (mặc định `.55`) để nội dung cuộn phía sau không lộ qua.
-- **Không bật sticky ở mobile ≤600px**: topbar mobile dùng `height:auto` + `flex-wrap:wrap` nên chiều cao thay đổi, chốt cứng `top` sẽ lệch/che mất thanh tab.
-- Lưu ý: không thêm `overflow` (hidden/auto/scroll) cho `body`, `#dashboard` hay `.content` — sẽ làm hỏng `position:sticky` của thanh tab.
+**Thanh tab nằm TRONG topbar (11/2026)**: `.tabs#main-tabs` đã chuyển từ `.content` vào trong `.topbar` (topbar vốn `position:sticky;top:0` nên tab luôn hiện khi cuộn — **đã gỡ** rule sticky riêng `top:64px` của `.tabs`).
+- Thứ tự trong topbar: logo → `.topbar-center` (tiêu đề + badge ngày) → `.tabs` (đẩy sang phải bằng `margin-left:auto`).
+- **Tự co cho vừa 1 hàng**: `fitTopTabs()` thêm dồn `tt-c1…tt-c6` (giảm gap/padding → cỡ chữ `.82rem → .53rem`) tới khi `scrollWidth <= clientWidth`; hết mức mà vẫn tràn thì bật `tt-scroll` (cuộn ngang, không cắt mất tab). Gọi ở cuối `renderAll()`, khi `resize` (debounce 120ms) và **sau `document.fonts.ready`** (lần đo đầu webfont chưa tải xong → chọn mức co quá nhẹ). Thoát sớm khi `offsetWidth===0` (đang ở màn đăng nhập/upload) hoặc `innerWidth<=600`.
+- **601–1150px**: topbar `flex-wrap:wrap`, thanh tab xuống hàng riêng chiếm trọn bề ngang (đo thật: dưới ~1150px chỉ còn ~565px cho tab nhưng mức co nhỏ nhất vẫn cần ~662px → nếu ép 1 hàng sẽ cắt mất tab "Tiện ích"). Đo thật mức co: 1920px → không co · 1600px → `tt-c1` · 1366px → `tt-c4` · 1280px → `tt-c5` · ≤1150px → 2 hàng, `tt-c1`.
+- **≤600px**: tab chiếm cả hàng trong topbar, cuộn ngang, `fitTopTabs()` không can thiệp.
+- Lưu ý: không thêm `overflow` (hidden/auto/scroll) cho `body` hay `#dashboard` — sẽ làm hỏng `position:sticky` của topbar.
 
 **Khoảng cách dọc (09/2026)**: đã thu hẹp để nhường không gian cho vùng dữ liệu — `.content` padding-top `24px → 10px` (tablet `8px`, mobile `6px`), `.tabs` margin-bottom `24px → 12px` (mobile `8px`).
 
-**Thanh lọc chung đã bị xoá (09/2026)** — 3 bộ lọc GĐV / Nghiệp vụ / Trạng thái cùng `getFiltered()`, `buildGdvFilter()` và toàn bộ CSS `.filter-bar` đã gỡ bỏ. `renderAll()` nay tính thẳng `computeStats(RAW)`; muốn lọc/cắt lát dữ liệu thì dùng tab **Dashboard động** (7 tiêu chí nhóm) hoặc tab **Tra cứu tiến trình**. Số hồ sơ hiển thị ở pill `#record-count` (class `.topbar-count`) trong khối `.topbar-right` của topbar, cạnh nút "↩ Tải file khác".
+**Thanh lọc chung đã bị xoá (09/2026)** — 3 bộ lọc GĐV / Nghiệp vụ / Trạng thái cùng `getFiltered()`, `buildGdvFilter()` và toàn bộ CSS `.filter-bar` đã gỡ bỏ. `renderAll()` nay tính thẳng `computeStats(RAW)`; muốn lọc/cắt lát dữ liệu thì dùng tab **Dashboard động** (7 tiêu chí nhóm) hoặc tab **Tra cứu tiến trình**.
+
+**Topbar rút gọn (11/2026)** — theo yêu cầu người dùng:
+- Tiêu đề: **"Báo cáo tuần - Phòng CH& Giám định KV Quảng Ninh"**, căn trái, đặt **cách logo đúng 12mm** (`.topbar-center{margin-left:12mm}`; ≤1150px còn 8mm, mobile 0). `.topbar` đổi `justify-content` thành `flex-start`.
+- **Đã gỡ khỏi topbar**: pill số hồ sơ `#record-count` (và dòng gán nó trong `renderAll()`), nút "↩ Tải file khác" (`.btn-reset`), CSS `.topbar-right`/`.topbar-count`. Hàm `resetApp()` vẫn còn nhưng không còn nút gọi — muốn tải file khác phải xoá cache trình duyệt.
+- Tên nguồn dữ liệu ("Google Drive — Dulieu.xlsx" / tên file upload) **không hiển thị**: `#topbar-file` vẫn còn trong DOM nhưng `display:none` để `_applyDriveRaw()`/`handleFile()` ghi vào không lỗi. Badge ngày dữ liệu `#file-date-badge` giữ nguyên.
 
 - Trạng thái mặc định: `transform: translateY(-3px)`, `box-shadow: 0 6px 0 rgba(0,0,0,0.22)`
 - Hover: `translateY(-5px)`, shadow `8px`
@@ -305,7 +310,7 @@ Mỗi tab có màu gradient riêng, hiệu ứng nổi/nhấn kiểu nút 3D v�
 - Không thay đổi cấu trúc upload → loading → dashboard
 - Không thay đổi hàm `computeStats()` trừ khi thêm trường mới — hàm trả về `rows: data` (mảng đã lọc) để các hàm render dùng thay vì `RAW`
 - Khi thêm tab mới: thêm cả button, div container, case switchTab, hàm render, và gọi trong renderAll()
-- Tiêu đề thống nhất: **PTISOS - Văn phòng Miền Bắc - Phòng Khu vực Quảng Ninh**
+- Tiêu đề topbar: **Báo cáo tuần - Phòng CH& Giám định KV Quảng Ninh** (footer vẫn giữ **PTISOS - Văn phòng Miền Bắc - Phòng Khu vực Quảng Ninh**)
 - Màu brand PTI: `#1565C0` · Font: `Be Vietnam Pro`
 - **Không** thay đổi `cylinderPlugin`, `shadow3DPlugin`, `GRAD_PALETTE` trừ khi người dùng yêu cầu
 - Khi thêm chart bar mới → dùng `buildBar()`, chart donut mới → dùng `buildDonut()`
