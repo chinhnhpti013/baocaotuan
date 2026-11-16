@@ -166,15 +166,17 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
   padding:0 28px;height:64px;display:flex;align-items:center;justify-content:flex-start;
   position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3);
 }
-/* Tiêu đề đặt sát logo, cách đúng 12mm (theo yêu cầu) */
-.topbar-center{flex:0 1 auto;min-width:0;text-align:left;margin-left:12mm}
-.topbar-title{text-align:left}
-.topbar-meta{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+/* Tiêu đề đặt sát logo, cách đúng 12mm (theo yêu cầu).
+   Tiêu đề và dòng badge ngày dữ liệu căn giữa theo nhau (khối tự co theo nội dung). */
+.topbar-center{flex:0 0 auto;min-width:0;text-align:center;margin-left:12mm;padding-right:16px}  /* flex-shrink:0 — tiêu đề nowrap không được co: co thì chữ tràn đè lên thanh tab
+     (flex item vẫn vẽ phần chữ vượt khung). Thiếu chỗ thì để fitTopTabs() co thanh tab. */
+.topbar-title{text-align:center}
+.topbar-meta{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px}
 .topbar-logo{
   height:80px;width:auto;display:block;object-fit:contain;
   background:transparent;
 }
-.topbar-title{font-size:.88rem;font-weight:600;color:#fff;line-height:1.3}
+.topbar-title{font-size:1.32rem;font-weight:700;color:#fff;line-height:1.25;letter-spacing:.01em;white-space:nowrap}
 /* Tên file nguồn không hiển thị nữa (chỉ giữ element cho JS ghi vào) */
 .topbar-file{display:none}
 .file-date-badge{
@@ -739,7 +741,7 @@ table.ig-hs tr:nth-child(even) td{background:var(--surface2)}
   .topbar{height:auto;min-height:50px;padding:8px 10px;gap:6px;flex-wrap:wrap}
   .topbar-logo{font-size:.55rem;padding:3px 5px;display:none}
   .topbar-center{flex:1 1 100%;min-width:0;margin-left:0}
-  .topbar-title{font-size:.72rem;line-height:1.25;white-space:normal}
+  .topbar-title{font-size:.98rem;line-height:1.25;white-space:normal}
 
   /* Tabs — hàng riêng trong topbar, cuộn ngang, ẩn scrollbar */
   .topbar .tabs{flex:1 1 100%;margin:0;border-radius:10px}
@@ -808,7 +810,7 @@ table.ig-hs tr:nth-child(even) td{background:var(--surface2)}
   .tab{padding:7px 13px;font-size:.76rem}
   .kpi-val{font-size:1rem}
   .kpi-grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
-  .topbar-title{font-size:.82rem}
+  .topbar-title{font-size:1.1rem}
   .chart-wrap{height:220px}
   .chart-wrap-pie{height:260px}
   /* TLBT — tablet: xếp dọc, chart cao hơn */
@@ -1747,10 +1749,10 @@ function fitTopTabs(){
   if(el.offsetWidth===0) return;             // topbar đang ẩn (màn upload/loading)
   if(window.innerWidth<=600) return;         // mobile: tab chiếm cả hàng, cuộn ngang
   for(const c of TT_STEPS){
-    if(el.scrollWidth<=el.clientWidth+1) return;
+    if(el.scrollWidth<=el.clientWidth) return;   // khít đúng mép cũng tính là tràn (cắt mất bóng nút)
     el.classList.add(c);
   }
-  if(el.scrollWidth>el.clientWidth+1) el.classList.add('tt-scroll');
+  if(el.scrollWidth>el.clientWidth) el.classList.add('tt-scroll');
 }
 let _ttTid=0;
 window.addEventListener('resize',()=>{clearTimeout(_ttTid);_ttTid=setTimeout(fitTopTabs,120)});
