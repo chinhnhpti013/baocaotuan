@@ -231,7 +231,8 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 .tabs .tab:nth-child(4){background:linear-gradient(160deg,#c084fc 0%,#6d28d9 100%)} /* Báo cáo XO */
 .tabs .tab:nth-child(5){background:linear-gradient(160deg,#fb7185 0%,#be123c 100%)} /* CLDV */
 .tabs .tab:nth-child(6){background:linear-gradient(160deg,#fbbf24 0%,#b45309 100%)} /* Tra cứu */
-.tabs .tab:nth-child(7){background:linear-gradient(160deg,#818cf8 0%,#3730a3 100%)} /* Tiện ích */
+/* Tiện ích (indigo) không còn nút tab riêng — nằm ở dòng cuối droplist của Dashboard động,
+   màu lấy từ .dash-dd [data-d="tienich"] bên dưới. */
 
 /* Thanh tab đã chuyển vào trong .topbar (topbar sticky nên tab luôn hiện khi cuộn — không cần
    sticky riêng nữa). Đẩy sang phải tiêu đề, tự co bằng fitTopTabs() để 7 tab vừa đúng 1 hàng. */
@@ -261,9 +262,9 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 /* Phao cứu sinh: hết mức co mà vẫn tràn (cửa sổ rất hẹp) thì cho cuộn ngang, không cắt mất tab */
 .topbar .tabs.tt-scroll{overflow-x:auto;scrollbar-width:none}
 .topbar .tabs.tt-scroll::-webkit-scrollbar{display:none}
-/* Dưới ~1150px, tiêu đề + 7 tab không còn đủ chỗ trên cùng 1 hàng (đo thật: cần ~662px cho tab ở
-   mức co nhỏ nhất nhưng chỉ còn ~565px) → cho topbar xuống hàng, thanh tab chiếm trọn hàng dưới
-   để vẫn hiện đủ 7 tab thay vì bị cắt. */
+/* Dưới ~1150px, tiêu đề + 6 tab không còn đủ chỗ trên cùng 1 hàng mà không phải co rất nhỏ
+   (đo thật ở 1002px: hết 6 mức co vẫn tràn → phải cuộn ngang) → cho topbar xuống hàng, thanh tab
+   chiếm trọn hàng dưới. */
 @media(min-width:601px) and (max-width:1150px){
   .topbar{flex-wrap:wrap;height:auto;padding:6px 16px 8px}
   .topbar-center{margin-left:8mm}
@@ -399,6 +400,12 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 .dash-dd [data-d="garage"]   {--sg-bg1:#cffafe;--sg-bg2:#f0fdff;--sg-fg:#0e7490;--sg-d1:#22d3ee;--sg-d2:#0e7490;--sg-sh:rgba(14,116,144,.35)}
 .dash-dd [data-d="trangthai"]{--sg-bg1:#ffe4e6;--sg-bg2:#fff5f6;--sg-fg:#be123c;--sg-d1:#fb7185;--sg-d2:#be123c;--sg-sh:rgba(190,18,60,.35)}
 .dash-dd [data-d="mucTien"]  {--sg-bg1:#ffedd5;--sg-bg2:#fff7ed;--sg-fg:#c2410c;--sg-d1:#fb923c;--sg-d2:#c2410c;--sg-sh:rgba(194,65,12,.35)}
+/* Dòng cuối droplist KHÔNG phải tiêu chí nhóm: mở thẳng tab Tiện ích (giữ màu indigo của nút
+   tab cũ), ngăn với 7 tiêu chí bằng một vạch mờ. */
+.dash-dd [data-d="tienich"]  {--sg-bg1:#e0e7ff;--sg-bg2:#f5f7ff;--sg-fg:#3730a3;--sg-d1:#818cf8;--sg-d2:#3730a3;--sg-sh:rgba(55,48,163,.35)}
+.dash-dd-list button.dash-dd-go{margin-top:7px;position:relative}
+.dash-dd-list button.dash-dd-go::before{content:"";position:absolute;left:8px;right:8px;top:-5px;
+  border-top:1px dashed rgba(0,0,0,.16)}
 @media(max-width:600px){.dash-dd-list{min-width:220px}}
 .dash-info{
   font-size:.75rem;font-weight:600;color:#0e7490;white-space:nowrap;
@@ -1049,7 +1056,7 @@ table.ig-hs tr:nth-child(even) td{background:var(--surface2)}
   <div class="topbar">
     <img class="topbar-logo" src="assets/logo-ptisos.png" alt="PTISOS"/>
     <div class="topbar-center">
-      <div class="topbar-title">Báo cáo tuần - Phòng CH&amp; Giám định KV Quảng Ninh</div>
+      <div class="topbar-title">Báo cáo tuần - KV 013</div>
       <div class="topbar-meta">
         <!-- #topbar-file giữ lại (ẩn) để _applyDriveRaw/handleFile vẫn ghi được, không hiển thị -->
         <span class="topbar-file" id="topbar-file"></span>
@@ -1065,7 +1072,6 @@ table.ig-hs tr:nth-child(even) td{background:var(--surface2)}
       <button class="tab" onclick="switchTab('baocao',this)">📋 Báo cáo XO</button>
       <button class="tab" onclick="switchTab('cldv',this)">💡 Đề xuất cải tiến CLDV</button>
       <button class="tab" onclick="switchTab('search',this)">🔍 Tra cứu tiến trình</button>
-      <button class="tab" onclick="switchTab('tienich',this)">🧰 Tiện ích</button>
     </div>
   </div>
 
@@ -2707,7 +2713,16 @@ function buildDashDimMenu(){
   const list=document.getElementById('dash-dim-list');
   if(!list)return;
   list.innerHTML=DASH_DIM_BTN.map(([d,lb])=>
-    `<button type="button" data-d="${d}" class="${DASH_DIM===d?'active':''}" onclick="setDashDim('${d}')">${lb}</button>`).join('');
+    `<button type="button" data-d="${d}" class="${DASH_DIM===d?'active':''}" onclick="setDashDim('${d}')">${lb}</button>`).join('')
+    // Dòng cuối: không phải tiêu chí nhóm — mở thẳng tab Tiện ích (tab này đã bỏ nút riêng trên header)
+    +`<button type="button" data-d="tienich" class="dash-dd-go" onclick="openTienichTab()">🧰 Tiện ích</button>`;
+}
+
+// Mở tab Tiện ích từ droplist. Giữ nút tab "🎯 Dashboard động" ở trạng thái active vì đây là
+// lối vào duy nhất của tab Tiện ích (switchTab vẫn cần một nút để gắn .active).
+function openTienichTab(){
+  closeDashDD();
+  switchTab('tienich',dashTabBtn());
 }
 
 // Menu là position:fixed → tự gán toạ độ ngay dưới nút tab, kẹp lại cho khỏi tràn mép phải
