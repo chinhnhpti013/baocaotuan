@@ -2626,19 +2626,17 @@ function openSearchTab(){
 
 // Menu là position:fixed → tự gán toạ độ ngay dưới nút tab, kẹp lại cho khỏi tràn mép phải
 function positionDashDD(){
-  const d=dashDDEl();
-  // Neo vào nút "Xem theo" trong tab nếu nó đang hiện (lối vào chính), nếu không thì nút tab
-  const pick=document.querySelector('.dash-pick');
-  const b=(pick&&pick.offsetParent!==null)?pick:dashTabBtn();
+  const d=dashDDEl(),b=dashTabBtn();
   if(!d||!b)return;
+  /* LUÔN neo vào nút tab "Tổng quan", kể cả khi menu được mở bằng nút "Xem theo" nằm giữa
+     trang: menu là của nút tab, phải xổ ngay dưới nút tab chứ không bung ra giữa màn hình.
+     Topbar là position:sticky nên nút tab luôn nằm trong khung nhìn dù đã cuộn xuống đâu. */
   const r=b.getBoundingClientRect();
   const w=d.offsetWidth||230;
   d.style.left=Math.max(8,Math.min(r.left,window.innerWidth-w-12))+'px';
-  /* Kẹp cả chiều dọc: từ 11/2026 menu có thể neo vào nút "Xem theo" nằm giữa trang,
-     nếu nút ở sát đáy thì thả xuống sẽ tràn khỏi màn hình → lật lên trên nút. */
+  // Màn hình quá thấp thì ép menu nằm trọn trong khung nhìn (không để tràn xuống dưới)
   const h=d.offsetHeight||300;
   let top=r.bottom+8;
-  if(top+h>window.innerHeight-8)top=Math.max(8,r.top-h-8);
   if(top+h>window.innerHeight-8)top=Math.max(8,window.innerHeight-h-8);
   d.style.top=top+'px';
 }

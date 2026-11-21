@@ -97,7 +97,7 @@ Cột quan trọng:
 - Mở bằng **nút "Xem theo: … ▾"** (`.dash-pick`) nằm trong khối Phân tích đa chiều — đây là lối vào chính. Bấm **lại** nút tab Tổng quan khi đang đứng ở tab đó cũng bật/tắt menu.
 - ⚠️ **Không còn tự xổ menu khi vào tab**: nút tab nay mang nghĩa "Tổng quan", xổ menu mỗi lần bấm sẽ gây nhiễu. `switchTab('dashboard')` chỉ toggle menu khi `sameTab`.
 - Menu có **9 mục**: 7 tiêu chí nhóm + `🔍 Tra cứu tiến trình` (`openSearchTab()`) + `🧰 Tiện ích` (`openTienichTab()`). Hai mục cuối là **lối vào duy nhất** của 2 tab không có nút.
-- `positionDashDD()` neo vào `.dash-pick` nếu nút đó đang hiện, nếu không thì vào nút tab. ⚠️ Vì nút neo nay có thể nằm giữa trang nên hàm **kẹp cả chiều dọc**: không đủ chỗ thả xuống thì lật lên trên nút, vẫn không đủ thì ép vào trong khung nhìn. Thiếu đoạn này menu sẽ tràn khỏi màn hình khi nút ở sát đáy.
+- ⚠️ `positionDashDD()` **luôn neo vào nút tab Tổng quan** (`dashTabBtn()`), kể cả khi menu được mở bằng nút `.dash-pick` nằm giữa trang — menu là menu của nút tab nên phải xổ ngay dưới nút tab, không bung ra giữa màn hình (yêu cầu của người dùng 11/2026). Làm được vì `.topbar` là `position:sticky` nên nút tab luôn nằm trong khung nhìn dù đã cuộn tới đâu. Đo thật: menu `top = tab.bottom + 8`, lệch ngang 0, đúng cả khi đã cuộn 1.400px và cả khi topbar xuống 2 hàng ở 1.078px. Hàm chỉ còn kẹp chiều dọc cho màn hình quá thấp (ép menu nằm trọn trong khung nhìn).
 - Listener click ngoài phải bỏ qua **cả** `.tabs .tab` **và** `.dash-pick`, nếu không cú bấm mở menu sẽ bubble lên và đóng ngay.
 - Trợ lý GĐV (`tlOpenSearch`) tìm nút tab có `onclick` chứa `'search'`; nút đó không còn nên hàm **fallback sang `dashTabBtn()`** — đừng bỏ nhánh fallback này.
 
