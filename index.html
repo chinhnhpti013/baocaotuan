@@ -227,16 +227,13 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 .tab:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.22),0 2px 6px rgba(0,0,0,0.1)}
 .tab.active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.22),0 2px 6px rgba(0,0,0,0.1);filter:brightness(1.08)}
 /* Màu riêng từng tab — đánh số theo VỊ TRÍ nút, không theo tab.
-   11/2026 thêm 2 tab (Tiến độ theo chặng ở vị trí 4, Kiểm soát rủi ro ở vị trí 5) nên
-   Báo cáo XO / CLDV / Tra cứu dịch xuống 6 / 7 / 8 mà vẫn giữ đúng màu cũ. */
-.tabs .tab:nth-child(1){background:linear-gradient(160deg,#22d3ee 0%,#0e7490 100%)} /* Dashboard động */
-.tabs .tab:nth-child(2){background:linear-gradient(160deg,#60a5fa 0%,#1d4ed8 100%)} /* Tổng quan */
-.tabs .tab:nth-child(3){background:linear-gradient(160deg,#34d399 0%,#047857 100%)} /* Theo GĐV */
-.tabs .tab:nth-child(4){background:linear-gradient(160deg,#94a3b8 0%,#334155 100%)} /* Tiến độ theo chặng */
-.tabs .tab:nth-child(5){background:linear-gradient(160deg,#f87171 0%,#7f1d1d 100%)} /* Kiểm soát rủi ro */
-.tabs .tab:nth-child(6){background:linear-gradient(160deg,#c084fc 0%,#6d28d9 100%)} /* Báo cáo XO */
-.tabs .tab:nth-child(7){background:linear-gradient(160deg,#fb7185 0%,#be123c 100%)} /* CLDV */
-.tabs .tab:nth-child(8){background:linear-gradient(160deg,#fbbf24 0%,#b45309 100%)} /* Tra cứu */
+   11/2026 gom còn 5 nút; Tra cứu (vàng cam) và Tiện ích (indigo) không còn nút tab,
+   màu của 2 mục đó nằm ở .dash-dd [data-d="..."] trong menu thả xuống. */
+.tabs .tab:nth-child(1){background:linear-gradient(160deg,#60a5fa 0%,#1d4ed8 100%)} /* Tổng quan */
+.tabs .tab:nth-child(2){background:linear-gradient(160deg,#34d399 0%,#047857 100%)} /* Theo GĐV */
+.tabs .tab:nth-child(3){background:linear-gradient(160deg,#94a3b8 0%,#334155 100%)} /* Tiến độ & Hồ sơ tồn */
+.tabs .tab:nth-child(4){background:linear-gradient(160deg,#f87171 0%,#7f1d1d 100%)} /* Kiểm soát rủi ro */
+.tabs .tab:nth-child(5){background:linear-gradient(160deg,#fb7185 0%,#be123c 100%)} /* CLDV */
 /* Tiện ích (indigo) không còn nút tab riêng — nằm ở dòng cuối droplist của Dashboard động,
    màu lấy từ .dash-dd [data-d="tienich"] bên dưới. */
 
@@ -268,10 +265,9 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 /* Phao cứu sinh: hết mức co mà vẫn tràn (cửa sổ rất hẹp) thì cho cuộn ngang, không cắt mất tab */
 .topbar .tabs.tt-scroll{overflow-x:auto;scrollbar-width:none}
 .topbar .tabs.tt-scroll::-webkit-scrollbar{display:none}
-/* Từ 11/2026 có 8 tab. Dưới ~1400px, tiêu đề + 8 tab không còn đủ chỗ trên 1 hàng nếu không co
-   tới mức chữ quá nhỏ (đo thật ở 1178px: hết cả 6 mức co vẫn tràn, phải bật tt-scroll) →
-   cho topbar xuống hàng, thanh tab chiếm trọn hàng dưới. Mốc cũ 1150px là tính cho 6 tab. */
-@media(min-width:601px) and (max-width:1400px){
+/* 11/2026 gom còn 5 tab nên thanh tab lại vừa 1 hàng tới khá hẹp: đo thật 1878px và 1478px
+   không cần co chút nào. Mốc xuống hàng trả về 1150px (giai đoạn 8 tab phải nâng lên 1400px). */
+@media(min-width:601px) and (max-width:1150px){
   .topbar{flex-wrap:wrap;height:auto;padding:6px 16px 8px}
   .topbar-center{margin-left:8mm}
   .topbar .tabs{flex:1 1 100%;margin:0}
@@ -283,12 +279,10 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
   border:1px solid rgba(255,255,255,.75);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 14px rgba(0,0,0,.04);
 }
-#tab-overview{background:linear-gradient(170deg,rgba(219,234,254,.65) 0%,rgba(239,246,255,.4) 100%)}
 #tab-gdv{background:linear-gradient(170deg,rgba(209,250,229,.6) 0%,rgba(240,253,244,.4) 100%)}
-#tab-baocao{background:linear-gradient(170deg,rgba(237,233,254,.65) 0%,rgba(245,243,255,.4) 100%)}
 #tab-cldv{background:linear-gradient(170deg,rgba(255,228,230,.6) 0%,rgba(255,241,242,.4) 100%)}
 #tab-search{background:linear-gradient(170deg,rgba(254,243,199,.6) 0%,rgba(255,251,235,.4) 100%)}
-#tab-dashboard{background:linear-gradient(170deg,rgba(207,250,254,.6) 0%,rgba(236,254,255,.4) 100%)}
+#tab-dashboard{background:linear-gradient(170deg,rgba(219,234,254,.65) 0%,rgba(239,246,255,.4) 100%)}
 #tab-tienich{background:linear-gradient(170deg,rgba(224,231,255,.65) 0%,rgba(238,242,255,.4) 100%)}
 #tab-tiendo{background:linear-gradient(170deg,rgba(226,232,240,.72) 0%,rgba(248,250,252,.45) 100%)}
 #tab-ruiro{background:linear-gradient(170deg,rgba(254,226,226,.62) 0%,rgba(255,245,245,.42) 100%)}
@@ -375,6 +369,20 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 .btn-export:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
 
 /* DASHBOARD ĐỘNG — thanh chọn tiêu chí nhóm (segmented control) */
+/* Tiêu đề khối Phân tích đa chiều + nút mở menu tiêu chí (11/2026: nút tab nay là "Tổng quan"
+   nên phải có lối vào menu ngay trong tab, không bắt người dùng bấm lại nút tab mới biết). */
+.dash-sec-head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;
+  margin:26px 0 12px;padding-top:18px;border-top:2px dashed rgba(14,116,144,.3)}
+.dash-sec-head h2{font-size:1.05rem;font-weight:700;color:#0e7490;letter-spacing:.01em}
+.dash-pick{margin-left:auto;cursor:pointer;border:none;border-radius:10px;
+  padding:8px 16px;font-family:inherit;font-size:.8rem;font-weight:600;color:#fff;
+  background:linear-gradient(160deg,#22d3ee 0%,#0e7490 100%);
+  box-shadow:0 4px 0 rgba(0,0,0,.18),0 6px 12px rgba(14,116,144,.25);
+  transform:translateY(-2px);transition:transform .12s,box-shadow .12s}
+.dash-pick:hover{transform:translateY(-4px);box-shadow:0 6px 0 rgba(0,0,0,.18),0 9px 16px rgba(14,116,144,.3)}
+.dash-pick:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+.dash-pick b{font-weight:800}
+@media(max-width:600px){.dash-sec-head{margin-top:18px}.dash-pick{margin-left:0;width:100%}}
 .dash-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:18px}
 /* Menu chọn tiêu chí nhóm của tab Dashboard động — thả xuống từ chính nút tab
    "🎯 Dashboard động" (tab này không còn thanh "Xem theo" bên trong nội dung).
@@ -412,6 +420,8 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
    tab cũ), ngăn với 7 tiêu chí bằng một vạch mờ. */
 .dash-dd [data-d="tienich"]  {--sg-bg1:#e0e7ff;--sg-bg2:#f5f7ff;--sg-fg:#3730a3;--sg-d1:#818cf8;--sg-d2:#3730a3;--sg-sh:rgba(55,48,163,.35)}
 .dash-dd-list button.dash-dd-go{margin-top:7px;position:relative}
+.dash-dd [data-d="search"]{--sg-bg1:#fef3c7;--sg-bg2:#fffbeb;--sg-fg:#92400e;
+  --sg-d1:#fbbf24;--sg-d2:#b45309;--sg-sh:rgba(180,83,9,.35)}
 .dash-dd-list button.dash-dd-go::before{content:"";position:absolute;left:8px;right:8px;top:-5px;
   border-top:1px dashed rgba(0,0,0,.16)}
 @media(max-width:600px){.dash-dd-list{min-width:220px}}
@@ -634,9 +644,9 @@ table.gdv th,table.gdv td{
 table.gdv thead th{
   background:#1565C0;color:#fff;font-weight:700;font-size:.58rem;line-height:1.25;
 }
-/* Dãn cách riêng cho tab Báo cáo XO */
-#tab-baocao table.gdv th,#tab-baocao table.gdv td{padding:7px 10px}
-#tab-baocao table.gdv thead th{font-size:.6rem;line-height:1.4}
+/* Dãn cách riêng cho 2 bảng danh sách dài (trước ở tab Báo cáo XO, 11/2026 chuyển sang Tiến độ) */
+#tab-tiendo table.gdv.wide th,#tab-tiendo table.gdv.wide td{padding:7px 10px}
+#tab-tiendo table.gdv.wide thead th{font-size:.6rem;line-height:1.4}
 /* Bảng Tổng hợp HS tồn theo GĐV: ô số liệu phóng to 1,2 lần (.66rem → .79rem); cột Mã GĐV/Tổng cộng giữ nguyên */
 table.gdv.gdv-ton tbody td,table.gdv.gdv-ton tfoot td{font-size:.79rem;padding:2px 5px}
 table.gdv.gdv-ton tbody td.left,table.gdv.gdv-ton tfoot td.left{font-size:.66rem}
@@ -1110,17 +1120,15 @@ table.ig-hs tr:nth-child(even) td{background:var(--surface2)}
         <span id="file-date-badge"></span>
       </div>
     </div>
-    <!-- 8 tab nằm ngay trên topbar, tự co bằng fitTopTabs() để vừa đủ 1 hàng -->
+    <!-- 5 nút tab (11/2026 — gom từ 8), tự co bằng fitTopTabs() để vừa đủ 1 hàng.
+         Tra cứu tiến trình và Tiện ích không có nút riêng: vào từ menu thả xuống của nút Tổng quan. -->
     <div class="tabs" id="main-tabs">
       <button class="tab active" id="tab-btn-dashboard" onclick="switchTab('dashboard',this)"
-              title="Bấm để chọn tiêu chí xem">🎯 Dashboard động<span class="tab-caret">▾</span></button>
-      <button class="tab" onclick="switchTab('overview',this)">📊 Tổng quan</button>
+              title="Tổng quan · bấm lại để mở menu phân tích đa chiều, tra cứu, tiện ích">📊 Tổng quan<span class="tab-caret">▾</span></button>
       <button class="tab" onclick="switchTab('gdv',this)">👤 Theo GĐV</button>
-      <button class="tab" onclick="switchTab('tiendo',this)">⏱️ Tiến độ theo chặng</button>
+      <button class="tab" onclick="switchTab('tiendo',this)">⏱️ Tiến độ &amp; Hồ sơ tồn</button>
       <button class="tab" onclick="switchTab('ruiro',this)">🛡️ Kiểm soát rủi ro</button>
-      <button class="tab" onclick="switchTab('baocao',this)">📋 Báo cáo XO</button>
       <button class="tab" onclick="switchTab('cldv',this)">💡 Đề xuất cải tiến CLDV</button>
-      <button class="tab" onclick="switchTab('search',this)">🔍 Tra cứu tiến trình</button>
     </div>
   </div>
 
@@ -1131,12 +1139,16 @@ table.ig-hs tr:nth-child(even) td{background:var(--surface2)}
       <div class="dash-dd-list" id="dash-dim-list"></div>
     </div>
 
-    <div id="tab-dashboard" class="tab-pane"></div>
-    <div id="tab-overview" class="tab-pane" style="display:none"></div>
+    <!-- Tab Tổng quan gồm 2 khối: #pane-overview (KPI, TLBT, dòng chảy, địa bàn)
+         và #dash-dyn (phân tích đa chiều 7 tiêu chí — machinery cũ của Dashboard động).
+         Giữ id #tab-dashboard để toàn bộ CSS/JS của phần đa chiều không phải sửa. -->
+    <div id="tab-dashboard" class="tab-pane">
+      <div id="pane-overview"></div>
+      <div id="dash-dyn"></div>
+    </div>
     <div id="tab-gdv" class="tab-pane" style="display:none"></div>
     <div id="tab-tiendo" class="tab-pane" style="display:none"></div>
     <div id="tab-ruiro" class="tab-pane" style="display:none"></div>
-    <div id="tab-baocao" class="tab-pane" style="display:none"></div>
     <div id="tab-cldv" class="tab-pane" style="display:none"></div>
     <div id="tab-search" class="tab-pane" style="display:none"></div>
     <div id="tab-tienich" class="tab-pane" style="display:none"></div>
@@ -1780,7 +1792,7 @@ function renderAll(){
   const s=computeStats(RAW);
   destroyCharts();
   renderDashboard(s);renderOverview(s);renderGdv(s);renderStages(s);renderRisk(s);
-  renderBaoCao(s);renderCLDV(s);renderSearch();
+  renderCLDV(s);renderSearch();
   renderTienich();
   fitTopTabs();
   // Tải sheet TLBT song song (không block render chính)
@@ -1818,7 +1830,10 @@ function prog(p,color){return`<div class="prog"><div class="prog-fill" style="wi
 
 // TAB 1: TỔNG QUAN
 function renderOverview(s){
-  const el=document.getElementById('tab-overview');
+  // 11/2026: nội dung Tổng quan nằm trong khối con #pane-overview của tab Tổng quan
+  // (cùng pane #tab-dashboard với phần Phân tích đa chiều bên dưới).
+  const el=document.getElementById('pane-overview');
+  if(!el)return;
   const curYear=new Date().getFullYear();
   const prevYear=curYear-1;
   el.innerHTML=`
@@ -1835,25 +1850,12 @@ function renderOverview(s){
       ${kpi(fmtM(s.totalBt),'Tổng BT ước/duyệt','toàn bộ hồ sơ','purple')}
       ${kpi(fmtM(s.totalDaTra),'Đã chi trả (gồm VAT)','trả KH + trả GR','green')}
     </div>
-    <div class="chart-row">
-      <div class="chart-card"><h3>Tiếp nhận · Đã giải quyết · Đang xử lý theo GĐV</h3><div class="chart-wrap"><canvas id="chart-bar-main"></canvas></div></div>
-      <div class="chart-card"><h3>Phân bổ hồ sơ tồn theo thời gian</h3><div class="chart-wrap-pie"><canvas id="chart-donut-age"></canvas></div></div>
-    </div>
   `;
   el.innerHTML+=buildNvBtSection(curYear);
   el.innerHTML+=flowSection(s)+renderInfographic();   // Đợt 2: dòng chảy hồ sơ theo tháng
-  setTimeout(()=>{
-    buildBar('chart-bar-main',s.gdvStats.map(g=>g.code),[
-      {label:'Tổng tiếp nhận',data:s.gdvStats.map(g=>g.total),backgroundColor:'#90caf9'},
-      {label:'Đã giải quyết',data:s.gdvStats.map(g=>g.resolved),backgroundColor:'#6ee7b7'},
-      {label:'Đang xử lý',data:s.gdvStats.map(g=>g.processing),backgroundColor:'#fcd34d'}
-    ]);
-    buildDonut('chart-donut-age',
-      ['1–30 ngày','31–45 ngày','46–89 ngày','≥90 ngày'],
-      [s.buckets.b1,s.buckets.b2,s.buckets.b3,s.buckets.b4],
-      ['#10b981','#f59e0b','#f97316','#ef4444']);
-    // Chart NV BT được vẽ bởi _refreshNvBtSection() khi TLBT_DATA tải xong
-  },10);
+  // 2 chart cũ (tiếp nhận/GQ theo GĐV, donut phân bổ tồn) đã bỏ 11/2026: lặp lại đúng
+  // nội dung bảng ở tab Theo GĐV và biểu đồ phân bổ tồn ở tab Đề xuất cải tiến CLDV.
+  // Chart TLBT theo nghiệp vụ do _refreshNvBtSection() vẽ khi TLBT_DATA tải xong.
 }
 
 // ─── BẢNG TLBT THEO LOẠI HÌNH NGHIỆP VỤ ─────────────────────────────────────
@@ -2158,33 +2160,10 @@ function renderGdv(s){
 
     ${gdvScorecard(s)}
 
-    <div class="chart-row">
-      <div class="chart-card"><h3>Tổng hồ sơ cần giải quyết theo GĐV</h3><div class="chart-wrap-pie"><canvas id="chart-donut-gdv"></canvas></div></div>
-      <div class="chart-card"><h3>Tỷ lệ Hs tồn / Hs PS TB tháng — ngưỡng cảnh báo</h3><div class="chart-wrap"><canvas id="chart-gdv-tyle"></canvas></div></div>
-    </div>
-    <div class="chart-row">
-      <div class="chart-card"><h3>Cơ cấu tồn theo nghiệp vụ (TNDS / VCX)</h3><div class="chart-wrap"><canvas id="chart-gdv-nv"></canvas></div></div>
-      <div class="chart-card"><h3>Chi tiết tồn theo dải ngày</h3><div class="chart-wrap"><canvas id="chart-gdv-aging"></canvas></div></div>
-    </div>
   `+buildPhatSinhSection(curYear);
   setTimeout(()=>{
-    buildDonut('chart-donut-gdv',
-      s.gdvStats.map(g=>g.code),
-      s.gdvStats.map(g=>g.tongCanGQ),
-      ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316']);
-    buildBar('chart-gdv-tyle',s.gdvStats.map(g=>g.code),[
-      {label:'Tỷ lệ (%)',
-       data:s.gdvStats.map(g=>g.tyLeTon),
-       backgroundColor:s.gdvStats.map(g=>g.wl===3?'#ef4444':g.wl===2?'#f59e0b':'#10b981')}
-    ],[
-      {type:'line',data:Array(s.gdvStats.length).fill(80),borderColor:'#f59e0b',borderDash:[5,3],pointRadius:0,label:'Ngưỡng 80%'},
-      {type:'line',data:Array(s.gdvStats.length).fill(130),borderColor:'#ef4444',borderDash:[5,3],pointRadius:0,label:'Ngưỡng 130%'}
-    ]);
-    buildBar('chart-gdv-nv',s.gdvStats.map(g=>g.code),[
-      {label:'TNDS',data:s.gdvStats.map(g=>g.tnds_ton),backgroundColor:'#60a5fa'},
-      {label:'VCX',data:s.gdvStats.map(g=>g.vcx_ton),backgroundColor:'#a78bfa'}
-    ]);
-    // 2 chart của thẻ điểm chu kỳ (Đợt 1)
+    // Tab Theo GĐV chỉ còn 1 biểu đồ: chu kỳ giải quyết (các chart donut/tỷ lệ/nghiệp vụ/dải ngày
+    // đã bỏ 11/2026 vì lặp lại đúng các cột đã có trong 2 bảng ngay phía trên).
     if(s.cycle&&s.cycle.byGdv.length){
       const cg=s.cycle.byGdv;
       buildBar('chart-gdv-cycle',cg.map(g=>g.code),[
@@ -2194,171 +2173,13 @@ function renderGdv(s){
         {type:'line',data:Array(cg.length).fill(s.cycle.overall.med),borderColor:'#1d4ed8',
          borderDash:[5,3],pointRadius:0,label:'Trung vị toàn phòng'}
       ]);
-      buildBar('chart-gdv-leg',cg.map(g=>g.code),[
-        {label:'Giám định → Trình duyệt giá',data:cg.map(g=>g.w1.med),backgroundColor:'#f59e0b'},
-        {label:'Bảo lãnh → Trình ĐNTT',data:cg.map(g=>g.w2.med),backgroundColor:'#6366f1'}
-      ]);
     }
-    buildBar('chart-gdv-aging',s.gdvStats.map(g=>g.code),[
-      {label:'0–30 ngày',data:s.gdvStats.map(g=>g.g30),backgroundColor:'#10b981'},
-      {label:'31–45 ngày',data:s.gdvStats.map(g=>g.g30_45),backgroundColor:'#f59e0b'},
-      {label:'46–89 ngày',data:s.gdvStats.map(g=>g.g45_90),backgroundColor:'#f97316'},
-      {label:'≥90 ngày',data:s.gdvStats.map(g=>g.qua90),backgroundColor:'#ef4444'}
-    ]);
   },10);
 }
 
 
-// TAB 4: BÁO CÁO XO
-function renderBaoCao(s){
-  const el=document.getElementById('tab-baocao');
-  const data=s.rows;
-  const curYear=new Date().getFullYear();
-  const curYearStart=new Date(curYear,0,1);
-
-  // ── Báo cáo 1: Top 10 Gara/Showroom ──
-  // Ánh xạ: Tên garage (thường gọi), AX=Tiền ước/duyệt BT, BC=Tiền BT đã trả cho GR, Y=Ngày mở HSBT
-  const garaMap={};
-  data.forEach(r=>{
-    const ngay=parseDate(r['Ngày mở HSBT']);
-    if(!ngay||ngay<curYearStart)return;
-    const tenGR=String(r['Tên garage (thường gọi)']||r['Tên garage (ĐKKD)']||'').trim();
-    if(!tenGR)return;
-    if(!garaMap[tenGR])garaMap[tenGR]={ten:tenGR,soVu:0,tienUoc:0,tienDaTra:0};
-    garaMap[tenGR].soVu++;
-    garaMap[tenGR].tienUoc+=parseMoney(r['Tiền ước/duyệt BT']);
-    garaMap[tenGR].tienDaTra+=parseMoney(r['Tiền BT đã trả cho GR']);
-  });
-  const top30=Object.values(garaMap)
-    .sort((a,b)=>b.tienUoc-a.tienUoc)
-    .slice(0,30);
-  const totG_soVu=top30.reduce((a,g)=>a+g.soVu,0);
-  const totG_uc=top30.reduce((a,g)=>a+g.tienUoc,0);
-  const totG_da=top30.reduce((a,g)=>a+g.tienDaTra,0);
-  const rows1=top30.map((g,i)=>`<tr>
-    <td style="text-align:center">${i+1}</td>
-    <td class="left">${g.ten}</td>
-    <td style="text-align:center">${fmtN(g.soVu)}</td>
-    <td style="text-align:right;font-family:'JetBrains Mono',monospace">${fmtMBC(g.tienUoc)}</td>
-    <td style="text-align:right;font-family:'JetBrains Mono',monospace;color:var(--green)">${fmtMBC(g.tienDaTra)}</td>
-  </tr>`).join('');
-
-  // Helper tạo rows cho bảng hồ sơ tồn
-  function makeHsTonRows(list){
-    return list.map((r,i)=>{
-      const ngayTon=parseFloat(String(r['Số ngày tồn']||'').replace(/,/g,''));
-      const cls=ngayTon>=180?'hl-red':ngayTon>=120?'hl-amber':'';
-      return`<tr>
-        <td style="text-align:center;color:var(--text2);font-size:.72rem">${i+1}</td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:.74rem">${gdvKey(r)||''}</td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:.74rem;max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${r['Số HSBT']||''}">${String(r['Số HSBT']||'').substring(0,24)}</td>
-        <td style="font-weight:700">${r['Biển số xe']||''}</td>
-        <td style="font-size:.72rem">${r['Mã nghiệp vụ']||''}</td>
-        <td style="font-size:.74rem;max-width:140px;overflow:hidden;text-overflow:ellipsis" title="${r['Tên garage (thường gọi)']||r['Tên garage (ĐKKD)']||''}">${String(r['Tên garage (thường gọi)']||r['Tên garage (ĐKKD)']||'').substring(0,20)}</td>
-        <td style="font-size:.7rem;color:var(--text2)">${r['Mã check']||''}</td>
-        <td style="font-size:.7rem;color:var(--text2)">${r['Mã validate']||''}</td>
-        <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:.74rem">${fmtMBC(parseMoney(r['Tiền ước/duyệt BT']))}</td>
-        <td style="font-size:.74rem">${r['Trạng thái hồ sơ']||''}</td>
-        <td class="${cls}" style="text-align:center;font-weight:700">${fmtN(ngayTon)}</td>
-      </tr>`;
-    }).join('');
-  }
-
-  // Header cột chung cho bảng hồ sơ tồn (sticky khi scroll)
-  const hsTonHeader=`<tr style="position:sticky;top:0;z-index:2">
-    <th style="width:36px">#</th>
-    <th class="lv2" style="width:90px">GĐV thụ lý</th>
-    <th class="lv2" style="min-width:160px">Số HSBT</th>
-    <th class="lv2" style="width:100px">Biển số xe</th>
-    <th class="lv2" style="width:90px">Mã NV</th>
-    <th class="lv2" style="min-width:140px">Tên Gara</th>
-    <th class="lv2" style="width:90px">Mã check</th>
-    <th class="lv2" style="width:100px">Mã validate</th>
-    <th class="lv2" style="width:140px">Tiền ước/duyệt BT</th>
-    <th class="lv2" style="width:110px">Trạng thái HS</th>
-    <th class="lv3" style="width:80px">Số ngày<br/>tồn</th>
-  </tr>`;
-
-  // ── Báo cáo 2: Hồ sơ tồn >= 90 ngày ──
-  const ton90=data
-    .filter(r=>{const n=parseFloat(String(r['Số ngày tồn']||'').replace(/,/g,''));return n>=90;})
-    .sort((a,b)=>parseFloat(String(b['Số ngày tồn']||'').replace(/,/g,''))-parseFloat(String(a['Số ngày tồn']||'').replace(/,/g,'')));
-  const rows2=makeHsTonRows(ton90);
-
-  // ── Báo cáo 3: Hồ sơ tồn > 45 và <= 90 ngày ──
-  const ton45_90=data
-    .filter(r=>{const n=parseFloat(String(r['Số ngày tồn']||'').replace(/,/g,''));return n>45&&n<90;})
-    .sort((a,b)=>parseFloat(String(b['Số ngày tồn']||'').replace(/,/g,''))-parseFloat(String(a['Số ngày tồn']||'').replace(/,/g,'')));
-  const rows3=makeHsTonRows(ton45_90);
-
-  el.innerHTML=`
-    <div class="gdv-report-wrap" style="margin-bottom:20px">
-      <div class="gdv-report-header">
-        <div class="title">1. THỐNG KÊ DOANH THU SỬA CHỮA CÁC GARA, SHOWROOM — PS NĂM ${curYear}</div>
-        <div class="period">Top 30 Gara/Showroom có số tiền sửa chữa phát sinh lớn nhất năm ${curYear}</div>
-      </div>
-      <div class="gdv-table-outer" style="max-height:480px;overflow-y:auto">
-        <table class="gdv" style="min-width:700px">
-          <thead style="position:sticky;top:0;z-index:2">
-            <tr>
-              <th style="width:44px">Stt</th>
-              <th class="lv2" style="min-width:220px;text-align:left">Tên Gara / Showroom</th>
-              <th class="lv2" style="width:120px">Số vụ phát sinh<br/>năm ${curYear}</th>
-              <th class="lv2" style="width:180px">Số tiền SC phát sinh<br/>năm ${curYear} ước BT</th>
-              <th class="lv2" style="width:180px">Số tiền SC phát sinh<br/>năm ${curYear} đã BT</th>
-            </tr>
-          </thead>
-          <tbody>${rows1||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2)">Không có dữ liệu Tên garage trong file</td></tr>'}</tbody>
-          <tfoot>
-            <tr>
-              <td colspan="2" class="left"><b>Tổng cộng (Top 30)</b></td>
-              <td style="text-align:center"><b>${fmtN(totG_soVu)}</b></td>
-              <td style="text-align:right;font-family:'JetBrains Mono',monospace"><b>${fmtMBC(totG_uc)}</b></td>
-              <td style="text-align:right;font-family:'JetBrains Mono',monospace;color:var(--green)"><b>${fmtMBC(totG_da)}</b></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-      <div class="gdv-report-footer">
-        Lọc: HS có Ngày mở HSBT từ 01/01/${curYear} &nbsp;·&nbsp; Sắp xếp: Tiền ước BT giảm dần &nbsp;·&nbsp; Tổng Gara có phát sinh: <b>${Object.keys(garaMap).length}</b>
-      </div>
-    </div>
-
-    <div class="gdv-report-wrap" style="margin-bottom:20px">
-      <div class="gdv-report-header" style="background:linear-gradient(135deg,#b91c1c,#ef4444)">
-        <div class="title">2. DANH SÁCH CHI TIẾT HỒ SƠ TỒN TRÊN 90 NGÀY</div>
-        <div class="period">Sắp xếp theo số ngày tồn giảm dần &nbsp;·&nbsp; Tổng: <b>${ton90.length} hồ sơ</b></div>
-      </div>
-      <div class="gdv-table-outer">
-        <table class="gdv" style="min-width:1000px">
-          <thead>${hsTonHeader}</thead>
-          <tbody>${rows2||'<tr><td colspan="11" style="text-align:center;padding:20px;color:var(--green);font-weight:700">✅ Không có hồ sơ nào tồn trên 90 ngày!</td></tr>'}</tbody>
-        </table>
-      </div>
-      <div class="gdv-report-footer">
-        Điều kiện: Số ngày tồn ≥ 90 &nbsp;·&nbsp;
-        <span style="color:var(--red);font-weight:700">■</span> ≥ 180 ngày &nbsp;
-        <span style="color:var(--amber);font-weight:700">■</span> 120–179 ngày
-      </div>
-    </div>
-
-    <div class="gdv-report-wrap">
-      <div class="gdv-report-header" style="background:linear-gradient(135deg,#b45309,#f59e0b)">
-        <div class="title">3. DANH SÁCH CHI TIẾT HỒ SƠ TỒN &gt;45 NGÀY VÀ ≤90 NGÀY</div>
-        <div class="period">Sắp xếp theo số ngày tồn giảm dần &nbsp;·&nbsp; Tổng: <b>${ton45_90.length} hồ sơ</b></div>
-      </div>
-      <div class="gdv-table-outer" style="max-height:480px;overflow-y:auto">
-        <table class="gdv" style="min-width:1000px">
-          <thead>${hsTonHeader}</thead>
-          <tbody>${rows3||'<tr><td colspan="11" style="text-align:center;padding:20px;color:var(--green);font-weight:700">✅ Không có hồ sơ nào tồn từ 46–89 ngày!</td></tr>'}</tbody>
-        </table>
-      </div>
-      <div class="gdv-report-footer">
-        Điều kiện: Số ngày tồn &gt; 45 và &lt; 90 &nbsp;·&nbsp; Cần theo dõi sát để tránh vượt ngưỡng 90 ngày
-      </div>
-    </div>
-  `+garageQualitySection(s);   // Đợt 2: BC4 — xếp hạng gara theo chất lượng phối hợp
-}
+// Tab Báo cáo XO đã bỏ (11/2026): BC1 + BC4 gộp thành garageSection(), BC2 + BC3 + Top 50
+// đứng yên gộp thành tonListSection(), cả hai nay nằm ở tab ⏱️ Tiến độ & Hồ sơ tồn.
 
 function fmtMBC(v){
   if(!v||isNaN(v))return'—';
@@ -2786,7 +2607,9 @@ function buildDashDimMenu(){
   list.innerHTML=DASH_DIM_BTN.map(([d,lb])=>
     `<button type="button" data-d="${d}" class="${DASH_DIM===d?'active':''}" onclick="setDashDim('${d}')">${lb}</button>`).join('')
     // Dòng cuối: không phải tiêu chí nhóm — mở thẳng tab Tiện ích (tab này đã bỏ nút riêng trên header)
-    +`<button type="button" data-d="tienich" class="dash-dd-go" onclick="openTienichTab()">🧰 Tiện ích</button>`;
+    // 2 dòng cuối không phải tiêu chí nhóm — đây là lối vào duy nhất của 2 tab không có nút riêng
+    +`<button type="button" data-d="search" class="dash-dd-go" onclick="openSearchTab()">🔍 Tra cứu tiến trình</button>`
+    +`<button type="button" data-d="tienich" onclick="openTienichTab()">🧰 Tiện ích</button>`;
 }
 
 // Mở tab Tiện ích từ droplist. Giữ nút tab "🎯 Dashboard động" ở trạng thái active vì đây là
@@ -2795,15 +2618,29 @@ function openTienichTab(){
   closeDashDD();
   switchTab('tienich',dashTabBtn());
 }
+// Mở tab Tra cứu tiến trình từ menu (tab này cũng không còn nút riêng từ 11/2026)
+function openSearchTab(){
+  closeDashDD();
+  switchTab('search',dashTabBtn());
+}
 
 // Menu là position:fixed → tự gán toạ độ ngay dưới nút tab, kẹp lại cho khỏi tràn mép phải
 function positionDashDD(){
-  const d=dashDDEl(),b=dashTabBtn();
+  const d=dashDDEl();
+  // Neo vào nút "Xem theo" trong tab nếu nó đang hiện (lối vào chính), nếu không thì nút tab
+  const pick=document.querySelector('.dash-pick');
+  const b=(pick&&pick.offsetParent!==null)?pick:dashTabBtn();
   if(!d||!b)return;
   const r=b.getBoundingClientRect();
   const w=d.offsetWidth||230;
   d.style.left=Math.max(8,Math.min(r.left,window.innerWidth-w-12))+'px';
-  d.style.top=(r.bottom+8)+'px';
+  /* Kẹp cả chiều dọc: từ 11/2026 menu có thể neo vào nút "Xem theo" nằm giữa trang,
+     nếu nút ở sát đáy thì thả xuống sẽ tràn khỏi màn hình → lật lên trên nút. */
+  const h=d.offsetHeight||300;
+  let top=r.bottom+8;
+  if(top+h>window.innerHeight-8)top=Math.max(8,r.top-h-8);
+  if(top+h>window.innerHeight-8)top=Math.max(8,window.innerHeight-h-8);
+  d.style.top=top+'px';
 }
 
 function openDashDD(){
@@ -2823,7 +2660,7 @@ function closeDashDD(){
 document.addEventListener('click',e=>{
   if(!dashDDOpen())return;
   if(dashDDEl().contains(e.target))return;
-  if(e.target.closest&&e.target.closest('.tabs .tab'))return;
+  if(e.target.closest&&(e.target.closest('.tabs .tab')||e.target.closest('.dash-pick')))return;
   closeDashDD();
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDashDD();});
@@ -3031,7 +2868,7 @@ function dashDetailTable(groups){
 
 function renderDashboard(s){
   _dashLastS=s;
-  const el=document.getElementById('tab-dashboard');
+  const el=document.getElementById('dash-dyn');   // khối con của tab Tổng quan
   if(!el)return;
   // Huỷ chart cũ khi đổi tiêu chí nhóm (renderAll không chạy lại trong trường hợp này)
   ['chart-dash-bucket','chart-dash-ratio','chart-dash-money'].forEach(id=>{
@@ -3054,6 +2891,11 @@ function renderDashboard(s){
     :'Tỷ lệ giải quyết &amp; Tỷ lệ tồn/PS trung bình tháng (%)';
 
   el.innerHTML=`
+    <div class="dash-sec-head">
+      <h2>🎯 Phân tích đa chiều</h2>
+      <button type="button" class="dash-pick" onclick="openDashDD()"
+              title="Chọn tiêu chí nhóm · tra cứu hồ sơ · tiện ích">Xem theo: <b>${DASH_DIM_LABEL[DASH_DIM]}</b> ▾</button>
+    </div>
     <div class="dash-toolbar">
       <span class="dash-info">${fmtN(s.rows.length)} hồ sơ · nhóm theo ${DASH_DIM_LABEL[DASH_DIM]}${
         dimHasMoneyTable(DASH_DIM)
@@ -3445,6 +3287,12 @@ function gdvScorecard(s){
   const c=s.cycle;
   if(!c||!c.byGdv.length)return'';
   const medAll=c.overall.med;
+  // Gộp số liệu giảm trừ theo GĐV vào đây — trước 11/2026 là một bảng riêng ở tab Kiểm soát rủi ro,
+  // cùng một đối tượng (GĐV) nên gộp để không phải mở 2 tab mới chấm được một người.
+  const gtMap={};
+  ((s.risk&&s.risk.gdvGt)||[]).forEach(function(g){gtMap[g.code]=g});
+  const gtTot=((s.risk&&s.risk.gdvGt)||[]).reduce(function(a,g){
+    return{n:a.n+g.n,tien:a.tien+g.tien,tongHs:a.tongHs+g.tongHs}},{n:0,tien:0,tongHs:0});
   const rows=c.byGdv.map((g,i)=>{
     const clsC=medAll>0&&g.cyc.med>medAll*1.5?'hl-red':medAll>0&&g.cyc.med>medAll?'hl-amber':'hl-green';
     const cls1=g.w1.med>=10?'hl-red':g.w1.med>=5?'hl-amber':'';
@@ -3464,6 +3312,10 @@ function gdvScorecard(s){
       '<td><b>'+fmtN(g.ton)+'</b></td>'+
       '<td class="'+(g.idle14>=5?'hl-red':g.idle14?'hl-amber':'')+'">'+fmtN(g.idle14)+'</td>'+
       '<td style="color:#64748b">'+fmtN(g.idleMax)+'</td>'+
+      '<td>'+fmtN((gtMap[g.code]||{}).n||0)+'</td>'+
+      '<td class="pct '+(((gtMap[g.code]||{}).ty||0)>=20?'hl-green':'')+'">'+
+        (((gtMap[g.code]||{}).ty||0)).toFixed(1)+'%</td>'+
+      '<td class="num" style="color:#047857">'+fmtMBC(((gtMap[g.code]||{}).tien)||0)+'</td>'+
       '<td class="left">'+g.tags.map(t=>'<span class="flag-chip '+t.lv+'">'+t.t+'</span>').join('')+'</td>'+
     '</tr>';
   }).join('');
@@ -3486,7 +3338,8 @@ function gdvScorecard(s){
             '<th colspan="2" class="lv2">Giám định → Trình duyệt giá</th>'+
             '<th colspan="2" class="lv2">Bảo lãnh → Trình ĐNTT</th>'+
             '<th colspan="3" class="lv2">Hồ sơ tồn</th>'+
-            '<th rowspan="2" class="lv2" style="min-width:210px;text-align:left">Nhận định nghẽn</th>'+
+            '<th colspan="3" class="lv2">Giảm trừ bồi thường</th>'+
+            '<th rowspan="2" class="lv2" style="min-width:190px;text-align:left">Nhận định nghẽn</th>'+
           '</tr>'+
           '<tr>'+
             '<th class="lv3" style="width:70px" title="'+STAT_TIP.n+'">HS đo</th>'+
@@ -3500,6 +3353,9 @@ function gdvScorecard(s){
             '<th class="lv3" style="width:70px">Đang tồn</th>'+
             '<th class="lv3" style="width:90px">Đứng yên<br/>&gt;14 ngày</th>'+
             '<th class="lv3" style="width:80px">Đứng yên<br/>max</th>'+
+            '<th class="lv3" style="width:70px">Số HS</th>'+
+            '<th class="lv3" style="width:80px" title="Số HS có giảm trừ ÷ tổng HS thụ lý">Tỷ lệ<br/>phát hiện</th>'+
+            '<th class="lv3" style="width:96px">Tiền giảm trừ</th>'+
           '</tr>'+
         '</thead>'+
         '<tbody>'+rows+'</tbody>'+
@@ -3515,6 +3371,9 @@ function gdvScorecard(s){
           '<td>'+fmtN(L2.p90)+'</td>'+
           '<td><b>'+fmtN(c.tonTotal)+'</b></td>'+
           '<td colspan="2"><b>'+fmtN(c.idle30)+'</b> HS đứng yên &gt;30 ngày</td>'+
+          '<td><b>'+fmtN(gtTot.n)+'</b></td>'+
+          '<td class="pct"><b>'+(gtTot.tongHs?(gtTot.n/gtTot.tongHs*100):0).toFixed(1)+'%</b></td>'+
+          '<td class="num" style="color:#047857"><b>'+fmtMBC(gtTot.tien)+'</b></td>'+
           '<td></td>'+
         '</tr></tfoot>'+
       '</table>'+
@@ -3523,16 +3382,15 @@ function gdvScorecard(s){
       'Dùng <b>trung vị</b> thay vì trung bình để 1–2 hồ sơ cá biệt không làm lệch cả GĐV. '+
       '"Đứng yên" = số ngày kể từ mốc quy trình sau cùng của hồ sơ. '+
       'Chu kỳ chỉ đo trên hồ sơ đã có Ngày duyệt bồi thường, nên GĐV có ít hồ sơ hoàn tất thì cột "HS đo" nhỏ — '+
-      'đừng xếp hạng khi "HS đo" quá ít. Chi tiết từng chặng xem tab <b>⏱️ Tiến độ theo chặng</b>.'+
+      'đừng xếp hạng khi "HS đo" quá ít. Chi tiết từng chặng xem tab <b>⏱️ Tiến độ &amp; Hồ sơ tồn</b>. '+
+      'Ba cột <b>Giảm trừ bồi thường</b> gộp từ bảng riêng cũ ở tab Kiểm soát rủi ro — tỷ lệ phát hiện cao là điểm cộng '+
+      '(giữ lại được tiền cho PTI), không phải điểm trừ.'+
       statLegend()+
     '</div>'+
   '</div>'+
-  '<div class="chart-row">'+
-    '<div class="chart-card"><h3>Chu kỳ giải quyết theo GĐV (ngày)</h3>'+
-      '<div class="chart-wrap"><canvas id="chart-gdv-cycle"></canvas></div></div>'+
-    '<div class="chart-card"><h3>Thời gian 2 chặng nghẽn theo GĐV (trung vị, ngày)</h3>'+
-      '<div class="chart-wrap"><canvas id="chart-gdv-leg"></canvas></div></div>'+
-  '</div>';
+  '<div class="chart-card" style="margin-bottom:20px">'+
+    '<h3>Chu kỳ giải quyết theo GĐV (ngày) — cột xanh: mức bình thường, cột cam: 10% chậm nhất</h3>'+
+    '<div class="chart-wrap"><canvas id="chart-gdv-cycle"></canvas></div></div>';
 }
 
 /* ═══ TAB TIẾN ĐỘ THEO CHẶNG (báo cáo 1 + 2) ═════════════════════════════════ */
@@ -3609,26 +3467,6 @@ function renderStages(s){
   const fTot={n:c.flow.reduce((a,f)=>a+f.n,0),ge90:c.flow.reduce((a,f)=>a+f.ge90,0),
               bt:c.flow.reduce((a,f)=>a+f.bt,0)};
 
-  // ── Bảng 3: hồ sơ tồn lâu không chuyển bước ──
-  const idleTop=c.tonDetail.filter(d=>d.idle!==null)
-    .sort((a,b)=>b.idle-a.idle).slice(0,50);
-  const idleRows=idleTop.map((d,i)=>{
-    const cls=d.idle>=60?'hl-red':d.idle>=30?'hl-amber':'';
-    return'<tr>'+
-      '<td style="color:#64748b;font-size:.7rem">'+(i+1)+'</td>'+
-      '<td style="font-family:\'JetBrains Mono\',monospace;font-size:.72rem">'+(d.gdv||'')+'</td>'+
-      '<td style="font-family:\'JetBrains Mono\',monospace;font-size:.7rem" title="'+d.hsbt+'">'+cutTxt(d.hsbt,24)+'</td>'+
-      '<td style="font-weight:700">'+d.bienso+'</td>'+
-      '<td class="left" title="'+d.gara+'">'+cutTxt(d.gara,20)+'</td>'+
-      '<td class="left"><b>'+d.lab+'</b></td>'+
-      '<td>'+(d.lastDt?fmtDate(d.lastDt):'–')+'</td>'+
-      '<td class="'+cls+'"><b>'+fmtN(d.idle)+'</b></td>'+
-      '<td>'+fmtN(d.ton)+'</td>'+
-      '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace;font-size:.72rem">'+fmtMBC(d.bt)+'</td>'+
-      '<td style="font-size:.7rem">'+cutTxt(d.tt,22)+'</td>'+
-    '</tr>';
-  }).join('');
-
   const b1=c.bott[0],b2=c.bott[1];
   el.innerHTML=
   '<div class="note-box info">'+
@@ -3695,12 +3533,9 @@ function renderStages(s){
     '</div>'+
   '</div>'+
 
-  '<div class="chart-row">'+
-    '<div class="chart-card"><h3>Thời gian trung bình từng chặng (ngày)</h3>'+
-      '<div class="chart-wrap"><canvas id="chart-stage-avg"></canvas></div></div>'+
-    '<div class="chart-card"><h3>Hồ sơ tồn đang dừng ở bước nào (số HS)</h3>'+
-      '<div class="chart-wrap"><canvas id="chart-stage-stuck"></canvas></div></div>'+
-  '</div>'+
+  '<div class="chart-card" style="margin-bottom:20px">'+
+    '<h3>Thời gian trung bình từng chặng (ngày) — màu cột theo khâu phụ trách</h3>'+
+    '<div class="chart-wrap"><canvas id="chart-stage-avg"></canvas></div></div>'+
 
   '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#0f766e,#14b8a6)">'+
@@ -3746,46 +3581,14 @@ function renderStages(s){
     '</div>'+
   '</div>'+
 
-  '<div class="gdv-report-wrap">'+
-    '<div class="gdv-report-header" style="background:linear-gradient(135deg,#b45309,#f59e0b)">'+
-      '<div class="title">3. HỒ SƠ TỒN LÂU KHÔNG CHUYỂN BƯỚC — TOP 50 ĐỨNG YÊN</div>'+
-      '<div class="period">Sắp xếp theo số ngày đứng yên giảm dần &nbsp;·&nbsp; '+
-        'Đây là danh sách cần đốc trực tiếp, không chờ tới ngưỡng tồn 90 ngày</div>'+
-    '</div>'+
-    '<div class="gdv-table-outer" style="max-height:520px;overflow-y:auto">'+
-      '<table class="gdv" style="min-width:1100px">'+
-        '<thead style="position:sticky;top:0;z-index:2"><tr>'+
-          '<th style="width:36px">#</th>'+
-          '<th class="lv2" style="width:86px">GĐV</th>'+
-          '<th class="lv2" style="min-width:150px">Số HSBT</th>'+
-          '<th class="lv2" style="width:92px">Biển số xe</th>'+
-          '<th class="lv2" style="min-width:130px;text-align:left">Tên gara</th>'+
-          '<th class="lv2" style="min-width:140px;text-align:left">Bước dừng cuối</th>'+
-          '<th class="lv3" style="width:96px">Ngày mốc cuối</th>'+
-          '<th class="lv2" style="width:84px">Đứng yên<br/>(ngày)</th>'+
-          '<th class="lv3" style="width:76px">Số ngày<br/>tồn</th>'+
-          '<th class="lv2" style="width:116px">Tiền ước/duyệt</th>'+
-          '<th class="lv3" style="min-width:120px">Trạng thái HS</th>'+
-        '</tr></thead>'+
-        '<tbody>'+(idleRows||'<tr><td colspan="11" style="text-align:center;padding:20px;color:var(--green);font-weight:700">✅ Không có hồ sơ tồn</td></tr>')+'</tbody>'+
-      '</table>'+
-    '</div>'+
-    '<div class="gdv-report-footer">'+
-      '<span style="color:#dc2626;font-weight:700">■</span> đứng yên ≥60 ngày &nbsp;'+
-      '<span style="color:#d97706;font-weight:700">■</span> 30–59 ngày &nbsp;·&nbsp; '+
-      'Hiển thị tối đa 50 hồ sơ; tra cứu đầy đủ ở tab Tra cứu tiến trình.'+
-    '</div>'+
-  '</div>'+
-  dataQualitySection(s);   // Đợt 2: mục 4 — chất lượng dữ liệu khai báo
+  tonListSection(s)+      // 3. danh sách hồ sơ tồn (gộp BC2 + BC3 + Top 50 đứng yên)
+  garageSection(s)+       // 4. gara (gộp BC1 doanh thu + BC4 chất lượng phối hợp)
+  dataQualitySection(s);  // 5. chất lượng dữ liệu khai báo
 
   setTimeout(function(){
     buildBar('chart-stage-avg',c.legs.map(l=>l.short),[
       {label:'Ngày (TB)',data:c.legs.map(l=>l.avg),
        backgroundColor:c.legs.map(l=>OWN_FILL[l.cls]||'#64748b')}
-    ]);
-    buildBar('chart-stage-stuck',c.flow.map(f=>f.lab),[
-      {label:'Hồ sơ tồn',data:c.flow.map(f=>f.n),
-       backgroundColor:c.flow.map(f=>OWN_FILL[f.next.own]||'#64748b')}
     ]);
   },10);
 }
@@ -3805,18 +3608,6 @@ function renderRisk(s){
     '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace">'+fmtMBC(r.tien)+'</td>'+
     '<td class="pct">'+(k.gtSum?(r.tien/k.gtSum*100).toFixed(1):'0')+'%</td>'+
     '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace;color:#475569">'+fmtMBC(r.n?r.tien/r.n:0)+'</td>'+
-  '</tr>').join('');
-
-  // ── Bảng giảm trừ theo GĐV ──
-  const gdvRows=k.gdvGt.map((g,i)=>'<tr>'+
-    '<td>'+(i+1)+'</td>'+
-    '<td class="left"><b style="font-family:\'JetBrains Mono\',monospace">'+g.code+'</b>'+
-      '<br/><span style="font-size:.67rem;color:#64748b">'+g.name+'</span></td>'+
-    '<td>'+fmtN(g.tongHs)+'</td>'+
-    '<td><b>'+fmtN(g.n)+'</b></td>'+
-    '<td class="pct '+(g.ty>=20?'hl-green':'')+'">'+g.ty.toFixed(1)+'%</td>'+
-    '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace">'+fmtMBC(g.tien)+'</td>'+
-    '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace;color:#475569">'+fmtMBC(g.n?g.tien/g.n:0)+'</td>'+
   '</tr>').join('');
 
   // ── Bảng tổng hợp dấu hiệu ──
@@ -3908,41 +3699,14 @@ function renderRisk(s){
     '</div>'+
     '<div class="gdv-report-footer">'+
       'Hồ sơ giảm trừ vì khách không thông báo ngay / không giữ hiện trường vừa là tiền giữ lại được, '+
-      'vừa là <b>danh sách rủi ro khiếu nại</b> — nên đối chiếu với tab Đề xuất cải tiến CLDV.'+
-    '</div>'+
-  '</div>'+
-
-  '<div class="chart-row">'+
-    '<div class="chart-card"><h3>Cơ cấu tiền giảm trừ theo lý do</h3>'+
-      '<div class="chart-wrap-pie"><canvas id="chart-gt-reason"></canvas></div></div>'+
-    '<div class="chart-card"><h3>Tiền giảm trừ theo GĐV (triệu đồng)</h3>'+
-      '<div class="chart-wrap"><canvas id="chart-gt-gdv"></canvas></div></div>'+
-  '</div>'+
-
-  '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
-    '<div class="gdv-report-header" style="background:linear-gradient(135deg,#047857,#34d399)">'+
-      '<div class="title">2. GIẢM TRỪ BỒI THƯỜNG THEO GIÁM ĐỊNH VIÊN</div>'+
-      '<div class="period">Tỷ lệ phát hiện = số HS có giảm trừ ÷ tổng HS thụ lý</div>'+
-    '</div>'+
-    '<div class="gdv-table-outer">'+
-      '<table class="gdv" style="min-width:760px">'+
-        '<thead><tr>'+
-          '<th style="width:40px">Stt</th>'+
-          '<th class="lv2" style="min-width:150px;text-align:left">Mã GĐV</th>'+
-          '<th class="lv2" style="width:90px">Tổng HS thụ lý</th>'+
-          '<th class="lv2" style="width:90px">HS có giảm trừ</th>'+
-          '<th class="lv3" style="width:100px">Tỷ lệ phát hiện</th>'+
-          '<th class="lv2" style="width:130px">Tiền giảm trừ</th>'+
-          '<th class="lv3" style="width:120px">TB / vụ</th>'+
-        '</tr></thead>'+
-        '<tbody>'+gdvRows+'</tbody>'+
-      '</table>'+
+      'vừa là <b>danh sách rủi ro khiếu nại</b> — nên đối chiếu với tab Đề xuất cải tiến CLDV. '+
+      'Số liệu giảm trừ <b>theo từng GĐV</b> đã gộp vào thẻ điểm ở tab 👤 Theo GĐV.'+
     '</div>'+
   '</div>'+
 
   '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#7f1d1d,#ef4444)">'+
-      '<div class="title">3. TỔNG HỢP DẤU HIỆU CẦN RÀ SOÁT</div>'+
+      '<div class="title">2. TỔNG HỢP DẤU HIỆU CẦN RÀ SOÁT</div>'+
       '<div class="period">'+fmtN(k.flagged.length)+' hồ sơ có ít nhất 1 dấu hiệu '+
         '&nbsp;·&nbsp; Một hồ sơ có thể mang nhiều dấu hiệu nên tổng các dòng lớn hơn số hồ sơ</div>'+
     '</div>'+
@@ -3967,7 +3731,7 @@ function renderRisk(s){
 
   '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#b91c1c,#f87171)">'+
-      '<div class="title">4. DANH SÁCH HỒ SƠ CẦN RÀ SOÁT — TOP 100</div>'+
+      '<div class="title">3. DANH SÁCH HỒ SƠ CẦN RÀ SOÁT — TOP 100</div>'+
       '<div class="period">Sắp xếp theo mức độ dấu hiệu rồi theo số tiền giảm dần '+
         '&nbsp;·&nbsp; Tổng '+fmtN(k.flagged.length)+' hồ sơ có dấu hiệu</div>'+
     '</div>'+
@@ -3993,7 +3757,7 @@ function renderRisk(s){
 
   '<div class="gdv-report-wrap">'+
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#065f46,#059669)">'+
-      '<div class="title">5. DANH SÁCH HỒ SƠ CÓ GIẢM TRỪ — TOP 60 THEO SỐ TIỀN</div>'+
+      '<div class="title">4. DANH SÁCH HỒ SƠ CÓ GIẢM TRỪ — TOP 60 THEO SỐ TIỀN</div>'+
       '<div class="period">Tổng '+fmtN(k.gtCount)+' hồ sơ có giảm trừ / '+fmtMBC(k.gtSum)+'</div>'+
     '</div>'+
     '<div class="gdv-table-outer" style="max-height:520px;overflow-y:auto">'+
@@ -4019,24 +3783,180 @@ function renderRisk(s){
   '</div>'+
   repeatSection(s)+debtSection(s);   // Đợt 2: mục 6–7 tần suất xe/KH, mục 8–9 công nợ
 
-  setTimeout(function(){
-    const topR=k.reasons.slice(0,6);
-    if(topR.length)buildDonut('chart-gt-reason',
-      topR.map(r=>cutTxt(r.ly,28)),topR.map(r=>r.tien),
-      ['#10b981','#f59e0b','#ef4444','#6366f1','#8b5cf6','#06b6d4']);
-    buildBar('chart-gt-gdv',k.gdvGt.map(g=>g.code),[
-      {label:'Tiền giảm trừ (tr)',data:k.gdvGt.map(g=>Math.round(g.tien/1e6*10)/10)}
-    ]);
-  },10);
+}
+
+/* ═══ BẢNG GỘP (11/2026 — tối ưu hoá) ════════════════════════════════════════
+   Trước đây cùng một đối tượng bị tách ra nhiều bảng ở nhiều tab khác nhau:
+     · Gara: BC1 "doanh thu sửa chữa" (tab Báo cáo XO) + BC4 "chất lượng phối hợp"
+     · Hồ sơ tồn: BC2 (≥90 ngày) + BC3 (46–89 ngày) + "Top 50 đứng yên" (tab Tiến độ)
+     · GĐV: bảng tồn + thẻ điểm chu kỳ + "giảm trừ theo GĐV" (tab Kiểm soát rủi ro)
+   Nay mỗi đối tượng chỉ còn MỘT bảng, đủ cột của tất cả bảng cũ.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── GỘP BC1 + BC4: một bảng gara duy nhất ──────────────────────────────────
+   Giữ đúng định nghĩa lọc của BC1 (hồ sơ phát sinh từ 01/01 năm hiện tại) và giữ cả
+   dòng "TNDS" như BC1 cũ (người dùng đã chốt không loại) — nhưng đánh dấu rõ đó không
+   phải gara và không chấm điểm phối hợp cho dòng đó. */
+function garageSection(s){
+  const curYear=new Date().getFullYear();
+  const curYearStart=new Date(curYear,0,1);
+  const rows=s.rows.filter(function(r){
+    const d=parseDate(r['Ngày mở HSBT']);
+    return d&&d>=curYearStart&&garaNameOf(r);
+  });
+  const G=computeGarageStats(rows);
+  if(!G.all.length)return'';
+  const top=G.all.slice(0,30);
+  const tr=top.map(function(g,i){
+    const c1=(!g.fake&&g.w1s.n>=GQ_MIN_HS&&g.w1s.med>=10)?'hl-red':(!g.fake&&g.w1s.n>=GQ_MIN_HS&&g.w1s.med>=5)?'hl-amber':'';
+    const c2=(!g.fake&&g.w2s.n>=GQ_MIN_HS&&g.w2s.med>=20)?'hl-red':(!g.fake&&g.w2s.n>=GQ_MIN_HS&&g.w2s.med>=12)?'hl-amber':'';
+    return'<tr'+(g.slow?' class="row-warn2"':'')+(g.fake?' style="color:#94a3b8;font-style:italic"':'')+'>'+
+      '<td>'+(i+1)+'</td>'+
+      '<td class="left" title="'+g.name+'"><b>'+cutTxt(g.name,30)+'</b></td>'+
+      '<td>'+fmtN(g.n)+'</td>'+
+      '<td class="num">'+fmtMBC(g.bt)+'</td>'+
+      '<td class="num" style="color:#047857">'+fmtMBC(g.tra)+'</td>'+
+      '<td class="'+c1+'">'+(g.fake?'–':(g.w1s.n?'<b>'+g.w1s.med.toFixed(0)+'</b>':'–'))+'</td>'+
+      '<td class="'+c2+'">'+(g.fake?'–':(g.w2s.n?'<b>'+g.w2s.med.toFixed(0)+'</b>':'–'))+'</td>'+
+      '<td>'+(g.fake?'–':(g.cycs.n?g.cycs.med.toFixed(0):'–'))+'</td>'+
+      '<td>'+fmtN(g.ton)+'</td>'+
+      '<td class="'+(g.idle14>=3?'hl-red':g.idle14?'hl-amber':'')+'">'+fmtN(g.idle14)+'</td>'+
+      '<td class="left">'+(g.fake
+        ?'<span class="flag-chip flag-lo">Hồ sơ TNDS — không phải gara</span>'
+        :g.tags.map(function(t){return'<span class="flag-chip '+t.lv+'">'+t.t+'</span>'}).join(''))+'</td>'+
+    '</tr>';
+  }).join('');
+  const tt={n:top.reduce(function(a,g){return a+g.n},0),
+            bt:top.reduce(function(a,g){return a+g.bt},0),
+            tra:top.reduce(function(a,g){return a+g.tra},0),
+            ton:top.reduce(function(a,g){return a+g.ton},0)};
+  return''+
+  '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
+    '<div class="gdv-report-header" style="background:linear-gradient(135deg,#0f766e,#2dd4bf)">'+
+      '<div class="title">4. GARA / SHOWROOM — DOANH THU SỬA CHỮA &amp; CHẤT LƯỢNG PHỐI HỢP</div>'+
+      '<div class="period">Top 30 theo tiền ước/duyệt, hồ sơ phát sinh từ 01/01/'+curYear+
+        ' &nbsp;·&nbsp; Tổng <b>'+fmtN(G.total)+' gara</b> có phát sinh, <b>'+fmtN(G.bigN)+
+        ' gara</b> đủ '+GQ_MIN_HS+' hồ sơ để đánh giá, trong đó <b>'+fmtN(G.slowN)+' gara</b> có dấu hiệu chậm'+
+        (G.slowBt?' (giữ '+fmtMBC(G.slowBt)+')':'')+'</div>'+
+    '</div>'+
+    '<div class="gdv-table-outer" style="max-height:560px;overflow-y:auto">'+
+      '<table class="gdv wide" style="min-width:1120px">'+
+        '<thead style="position:sticky;top:0;z-index:2"><tr>'+
+          '<th style="width:40px">Stt</th>'+
+          '<th class="lv2" style="min-width:200px;text-align:left">Tên Gara / Showroom</th>'+
+          '<th class="lv2" style="width:80px">Số vụ<br/>phát sinh</th>'+
+          '<th class="lv2" style="width:120px">Tiền SC<br/>ước BT</th>'+
+          '<th class="lv2" style="width:120px">Tiền SC<br/>đã BT</th>'+
+          '<th class="lv3" style="width:106px" title="'+STAT_TIP.tv+'">Giám định →<br/>Trình duyệt giá</th>'+
+          '<th class="lv3" style="width:106px" title="'+STAT_TIP.tv+'">Bảo lãnh →<br/>Trình ĐNTT</th>'+
+          '<th class="lv3" style="width:86px" title="'+STAT_TIP.tv+'">Chu kỳ<br/>trung vị</th>'+
+          '<th class="lv3" style="width:70px">HS tồn</th>'+
+          '<th class="lv3" style="width:86px">Đứng yên<br/>&gt;14 ngày</th>'+
+          '<th class="lv2" style="min-width:180px;text-align:left">Đánh giá phối hợp</th>'+
+        '</tr></thead>'+
+        '<tbody>'+tr+'</tbody>'+
+        '<tfoot><tr>'+
+          '<td colspan="2" class="left"><b>Tổng cộng (Top 30)</b></td>'+
+          '<td><b>'+fmtN(tt.n)+'</b></td>'+
+          '<td class="num"><b>'+fmtMBC(tt.bt)+'</b></td>'+
+          '<td class="num" style="color:#047857"><b>'+fmtMBC(tt.tra)+'</b></td>'+
+          '<td colspan="3"></td>'+
+          '<td><b>'+fmtN(tt.ton)+'</b></td>'+
+          '<td colspan="2"></td>'+
+        '</tr></tfoot>'+
+      '</table>'+
+    '</div>'+
+    '<div class="gdv-report-footer">'+
+      'Gộp từ 2 báo cáo cũ: <b>doanh thu sửa chữa</b> (2 cột tiền) và <b>chất lượng phối hợp</b> (3 cột thời gian). '+
+      'Ba cột thời gian là <b>trung vị, đơn vị ngày</b>; chỉ chấm điểm gara có ≥'+GQ_MIN_HS+' hồ sơ đo được. '+
+      'Hai loại chậm cần cách xử lý khác nhau: <b>chậm gửi báo giá</b> là khâu lập dự toán, '+
+      '<b>chậm quyết toán</b> là khâu hoàn thiện hồ sơ sau sửa chữa. Hàng tô vàng: gara có dấu hiệu chậm rõ. '+
+      'Dòng tô xám là hồ sơ TNDS bị nhập chữ "TNDS" vào ô tên gara — giữ lại để tổng tiền khớp báo cáo cũ, '+
+      'nhưng không chấm điểm phối hợp.'+
+      statLegend()+
+    '</div>'+
+  '</div>';
+}
+
+/* ── GỘP BC2 + BC3 + Top 50 đứng yên: một danh sách hồ sơ tồn duy nhất ───────
+   Cũ: 3 bảng cùng liệt kê hồ sơ tồn, chỉ khác lát cắt ngày và số cột → trùng dòng,
+   phải mở 2 tab mới xem đủ. Nay 1 bảng đủ cột của cả 3, xếp theo số ngày tồn giảm dần. */
+function tonListSection(s){
+  const c=s.cycle;
+  const list=c.tonDetail.slice().sort(function(a,b){return b.ton-a.ton||(b.idle||0)-(a.idle||0)});
+  const n90=list.filter(function(d){return d.ton>=90}).length;
+  const n45=list.filter(function(d){return d.ton>45&&d.ton<90}).length;
+  const nd45=list.filter(function(d){return d.ton<=45}).length;
+  const bt90=list.filter(function(d){return d.ton>=90}).reduce(function(a,d){return a+d.bt},0);
+  const tr=list.map(function(d,i){
+    const cls=d.ton>=180?'hl-red':d.ton>=120?'hl-amber':d.ton>=90?'hl-amber':'';
+    const rowCls=d.ton>=90?'crit-row':d.ton>45?'warn-row':'';
+    const idleCls=(d.idle!==null&&d.idle>=60)?'hl-red':(d.idle!==null&&d.idle>=30)?'hl-amber':'';
+    const r=d.r;
+    return'<tr class="'+rowCls+'">'+
+      '<td style="color:#64748b;font-size:.7rem">'+(i+1)+'</td>'+
+      '<td style="font-family:\'JetBrains Mono\',monospace;font-size:.72rem">'+(d.gdv||'')+'</td>'+
+      '<td style="font-family:\'JetBrains Mono\',monospace;font-size:.7rem" title="'+d.hsbt+'">'+cutTxt(d.hsbt,22)+'</td>'+
+      '<td style="font-weight:700">'+d.bienso+'</td>'+
+      '<td style="font-size:.7rem">'+String(r['Mã nghiệp vụ']||'')+'</td>'+
+      '<td class="left" title="'+d.gara+'">'+cutTxt(d.gara,18)+'</td>'+
+      '<td class="left"><b>'+d.lab+'</b></td>'+
+      '<td style="font-size:.72rem">'+(d.lastDt?fmtDate(d.lastDt):'–')+'</td>'+
+      '<td class="'+idleCls+'"><b>'+(d.idle===null?'–':fmtN(d.idle))+'</b></td>'+
+      '<td class="'+cls+'" style="font-weight:700">'+fmtN(d.ton)+'</td>'+
+      '<td class="num">'+fmtMBC(d.bt)+'</td>'+
+      '<td style="font-size:.68rem;color:#64748b">'+String(r['Mã check']||'')+'</td>'+
+      '<td style="font-size:.68rem;color:#64748b">'+String(r['Mã validate']||'')+'</td>'+
+      '<td style="font-size:.7rem">'+cutTxt(d.tt,20)+'</td>'+
+    '</tr>';
+  }).join('');
+  return''+
+  '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
+    '<div class="gdv-report-header" style="background:linear-gradient(135deg,#b91c1c,#f87171)">'+
+      '<div class="title">3. DANH SÁCH HỒ SƠ TỒN — TOÀN BỘ, XẾP THEO SỐ NGÀY TỒN</div>'+
+      '<div class="period">Tổng <b>'+fmtN(list.length)+' hồ sơ tồn</b> &nbsp;·&nbsp; '+
+        '<b>'+fmtN(n90)+'</b> hồ sơ ≥90 ngày ('+fmtMBC(bt90)+') &nbsp;·&nbsp; '+
+        '<b>'+fmtN(n45)+'</b> hồ sơ 46–89 ngày &nbsp;·&nbsp; '+
+        '<b>'+fmtN(nd45)+'</b> hồ sơ ≤45 ngày</div>'+
+    '</div>'+
+    '<div class="gdv-table-outer" style="max-height:600px;overflow-y:auto">'+
+      '<table class="gdv wide" style="min-width:1260px">'+
+        '<thead style="position:sticky;top:0;z-index:2"><tr>'+
+          '<th style="width:36px">#</th>'+
+          '<th class="lv2" style="width:86px">GĐV</th>'+
+          '<th class="lv2" style="min-width:140px">Số HSBT</th>'+
+          '<th class="lv2" style="width:92px">Biển số xe</th>'+
+          '<th class="lv3" style="width:80px">Mã NV</th>'+
+          '<th class="lv3" style="min-width:120px;text-align:left">Tên gara</th>'+
+          '<th class="lv2" style="min-width:134px;text-align:left">Bước dừng cuối</th>'+
+          '<th class="lv3" style="width:92px">Ngày mốc cuối</th>'+
+          '<th class="lv2" style="width:80px" title="Số ngày kể từ mốc quy trình sau cùng — hồ sơ nằm im bao lâu rồi">Đứng yên<br/>(ngày)</th>'+
+          '<th class="lv2" style="width:76px">Số ngày<br/>tồn</th>'+
+          '<th class="lv2" style="width:110px">Tiền ước/duyệt</th>'+
+          '<th class="lv3" style="width:86px">Mã check</th>'+
+          '<th class="lv3" style="width:92px">Mã validate</th>'+
+          '<th class="lv3" style="min-width:110px">Trạng thái HS</th>'+
+        '</tr></thead>'+
+        '<tbody>'+(tr||'<tr><td colspan="14" style="text-align:center;padding:20px;color:var(--green);font-weight:700">✅ Không có hồ sơ tồn</td></tr>')+'</tbody>'+
+      '</table>'+
+    '</div>'+
+    '<div class="gdv-report-footer">'+
+      'Gộp từ 3 bảng cũ (tồn ≥90 ngày · tồn 46–89 ngày · Top 50 đứng yên lâu nhất) — trước đây 3 bảng này '+
+      'liệt kê trùng nhau nhiều dòng và nằm ở 2 tab khác nhau. '+
+      'Nền đỏ: tồn ≥90 ngày &nbsp;·&nbsp; nền cam: tồn 46–89 ngày. '+
+      'Cột <b>Đứng yên</b> tô đỏ khi ≥60 ngày, cam khi 30–59 ngày — hồ sơ tồn ít ngày nhưng đứng yên lâu '+
+      'vẫn cần đốc ngay, đừng chờ tới ngưỡng 90 ngày.'+
+    '</div>'+
+  '</div>';
 }
 
 /* ═════════════════════════════════════════════════════════════════════════════
    ĐỢT 2 — 5 BÁO CÁO BỔ SUNG (11/2026). Tất cả đều gắn vào tab SẴN CÓ, không thêm nút tab:
-     3.  Dòng chảy hồ sơ theo tháng        → cuối tab Tổng quan      (flowSection)
-     11. Gara theo chất lượng phối hợp     → BC4 tab Báo cáo XO      (garageQualitySection)
-     10. Tần suất tổn thất xe / khách hàng → mục 6–7 tab Kiểm soát rủi ro (repeatSection)
-     13. Công nợ & dòng tiền bồi thường    → mục 8 tab Kiểm soát rủi ro  (debtSection)
-     12. Chất lượng dữ liệu khai báo       → mục 4 tab Tiến độ theo chặng (dataQualitySection)
+     3.  Dòng chảy hồ sơ theo tháng        → cuối khối Tổng quan           (flowSection)
+     11. Gara theo chất lượng phối hợp     → mục 4 tab Tiến độ & Hồ sơ tồn (garageSection — 11/2026 gộp với BC1)
+     10. Tần suất tổn thất xe / khách hàng → mục 5–6 tab Kiểm soát rủi ro  (repeatSection)
+     13. Công nợ & dòng tiền bồi thường    → mục 7–8 tab Kiểm soát rủi ro  (debtSection)
+     12. Chất lượng dữ liệu khai báo       → mục 5 tab Tiến độ & Hồ sơ tồn (dataQualitySection)
    Dùng lại helper của Đợt 1: dayGap · statsOf · dataAsOf · lastStage · parseTon · parseMoney.
    ═════════════════════════════════════════════════════════════════════════════ */
 
@@ -4096,13 +4016,14 @@ function flowSection(s){
   // Hàm này trả về chuỗi HTML để hàm gọi nối vào innerHTML; setTimeout chạy sau khi
   // chuỗi đó đã được gắn vào DOM nên 2 canvas chắc chắn tồn tại.
   setTimeout(function(){
-    // Chart phát sinh/giải quyết chỉ lấy tháng đủ dữ liệu, nếu không 2 cột đầu = 0 gây hiểu nhầm.
+    // Chỉ lấy tháng đủ dữ liệu, nếu không 2 cột đầu = 0 gây hiểu nhầm.
+    // Gộp 2 chart cũ làm 1: tồn lũy kế vẽ dạng đường trên cùng trục (cùng bậc độ lớn với số HS).
     buildBar('chart-flow-ps',f.full.map(function(x){return x.label}),[
       {label:'HS phát sinh',data:f.full.map(function(x){return x.ps}),backgroundColor:'#60a5fa'},
       {label:'HS đã duyệt BT',data:f.full.map(function(x){return x.gq}),backgroundColor:'#34d399'}
-    ]);
-    buildBar('chart-flow-ton',f.act.map(function(x){return x.label}),[
-      {label:'Tồn cuối tháng',data:f.act.map(function(x){return x.ton}),backgroundColor:'#f59e0b'}
+    ],[
+      {type:'line',label:'Tồn lũy kế cuối tháng',data:f.full.map(function(x){return x.ton}),
+       borderColor:'#f59e0b',backgroundColor:'#f59e0b',borderWidth:2.5,pointRadius:3,tension:.25}
     ]);
   },10);
   const rows=f.act.map(function(x,i){
@@ -4176,12 +4097,9 @@ function flowSection(s){
         'nếu tính vào thì tỷ lệ giải quyết bị kéo xuống sai.':'')+
     '</div>'+
   '</div>'+
-  '<div class="chart-row">'+
-    '<div class="chart-card"><h3>Phát sinh và giải quyết theo tháng (số HS)</h3>'+
-      '<div class="chart-wrap"><canvas id="chart-flow-ps"></canvas></div></div>'+
-    '<div class="chart-card"><h3>Tồn lũy kế cuối mỗi tháng (số HS)</h3>'+
-      '<div class="chart-wrap"><canvas id="chart-flow-ton"></canvas></div></div>'+
-  '</div>';
+  '<div class="chart-card" style="margin-bottom:20px">'+
+    '<h3>Dòng chảy hồ sơ theo tháng — phát sinh · đã duyệt BT · tồn lũy kế (số HS)</h3>'+
+    '<div class="chart-wrap"><canvas id="chart-flow-ps"></canvas></div></div>';
 }
 
 /* ── 11. GARA THEO CHẤT LƯỢNG PHỐI HỢP ───────────────────────────────────────
@@ -4197,14 +4115,13 @@ function isRealGara(name){
 }
 function computeGarageStats(data){
   const asOf=dataAsOf(data);
-  const map={};let skipped=0,skippedBt=0;
+  const map={};
   data.forEach(function(r){
     const name=garaNameOf(r);
-    if(!isRealGara(name)){
-      if(String(name||'').trim()){skipped++;skippedBt+=parseMoney(r['Tiền ước/duyệt BT']);}
-      return;
-    }
-    if(!map[name])map[name]={name:name,n:0,bt:0,tra:0,w1:[],w2:[],cyc:[],ton:0,idle14:0,gtN:0,gt:0};
+    if(!name||name==='-')return;
+    // Giữ cả dòng "TNDS" (ô tên gara bị nhập mã nghiệp vụ) để tổng tiền khớp báo cáo cũ,
+    // nhưng gắn cờ fake để không chấm điểm phối hợp cho nó.
+    if(!map[name])map[name]={name:name,fake:!isRealGara(name),n:0,bt:0,tra:0,w1:[],w2:[],cyc:[],ton:0,idle14:0,gtN:0,gt:0};
     const g=map[name];
     g.n++;g.bt+=parseMoney(r['Tiền ước/duyệt BT']);g.tra+=parseMoney(r['Tiền BT đã trả cho GR']);
     const a=dayGap(r['Ngày giám định chi tiết'],r['Ngày trình duyệt giá']);if(a!==null&&a>=0)g.w1.push(a);
@@ -4220,79 +4137,22 @@ function computeGarageStats(data){
   const list=Object.values(map).map(function(g){
     const o=Object.assign({},g,{w1s:statsOf(g.w1),w2s:statsOf(g.w2),cycs:statsOf(g.cyc)});
     const tags=[];
-    if(o.w2s.n>=GQ_MIN_HS&&o.w2s.med>=20)tags.push({t:'Chậm quyết toán',lv:'flag-hi'});
-    else if(o.w2s.n>=GQ_MIN_HS&&o.w2s.med>=12)tags.push({t:'Quyết toán hơi chậm',lv:'flag-md'});
-    if(o.w1s.n>=GQ_MIN_HS&&o.w1s.med>=10)tags.push({t:'Chậm gửi báo giá',lv:'flag-hi'});
-    else if(o.w1s.n>=GQ_MIN_HS&&o.w1s.med>=5)tags.push({t:'Báo giá hơi chậm',lv:'flag-md'});
-    if(!tags.length)tags.push({t:'Phối hợp tốt',lv:'flag-lo'});
+    if(!o.fake){
+      if(o.w2s.n>=GQ_MIN_HS&&o.w2s.med>=20)tags.push({t:'Chậm quyết toán',lv:'flag-hi'});
+      else if(o.w2s.n>=GQ_MIN_HS&&o.w2s.med>=12)tags.push({t:'Quyết toán hơi chậm',lv:'flag-md'});
+      if(o.w1s.n>=GQ_MIN_HS&&o.w1s.med>=10)tags.push({t:'Chậm gửi báo giá',lv:'flag-hi'});
+      else if(o.w1s.n>=GQ_MIN_HS&&o.w1s.med>=5)tags.push({t:'Báo giá hơi chậm',lv:'flag-md'});
+      if(!tags.length)tags.push({t:'Phối hợp tốt',lv:'flag-lo'});
+    }
     o.tags=tags;
     o.slow=tags.some(function(t){return t.lv==='flag-hi'});
     return o;
   });
-  const big=list.filter(function(g){return g.n>=GQ_MIN_HS}).sort(function(a,b){return b.bt-a.bt});
-  return{list:list,big:big,total:list.length,skipped:skipped,skippedBt:skippedBt,
+  const all=list.slice().sort(function(a,b){return b.bt-a.bt});
+  const big=list.filter(function(g){return!g.fake&&g.n>=GQ_MIN_HS}).sort(function(a,b){return b.bt-a.bt});
+  return{list:list,all:all,big:big,total:list.length,bigN:big.length,
     slowN:big.filter(function(g){return g.slow}).length,
     slowBt:big.filter(function(g){return g.slow}).reduce(function(a,g){return a+g.bt},0)};
-}
-
-function garageQualitySection(s){
-  const G=computeGarageStats(s.rows);
-  if(!G.big.length)return'';
-  const top=G.big.slice(0,30);
-  const rows=top.map(function(g,i){
-    const c1=g.w1s.n>=GQ_MIN_HS&&g.w1s.med>=10?'hl-red':g.w1s.n>=GQ_MIN_HS&&g.w1s.med>=5?'hl-amber':'';
-    const c2=g.w2s.n>=GQ_MIN_HS&&g.w2s.med>=20?'hl-red':g.w2s.n>=GQ_MIN_HS&&g.w2s.med>=12?'hl-amber':'';
-    return'<tr'+(g.slow?' class="row-warn2"':'')+'>'+
-      '<td>'+(i+1)+'</td>'+
-      '<td class="left" title="'+g.name+'"><b>'+cutTxt(g.name,30)+'</b></td>'+
-      '<td>'+fmtN(g.n)+'</td>'+
-      '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace">'+fmtMBC(g.bt)+'</td>'+
-      '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace;color:#047857">'+fmtMBC(g.tra)+'</td>'+
-      '<td class="'+c1+'"><b>'+(g.w1s.n?g.w1s.med.toFixed(0):'–')+'</b></td>'+
-      '<td class="'+c2+'"><b>'+(g.w2s.n?g.w2s.med.toFixed(0):'–')+'</b></td>'+
-      '<td>'+(g.cycs.n?g.cycs.med.toFixed(0):'–')+'</td>'+
-      '<td>'+fmtN(g.ton)+'</td>'+
-      '<td class="'+(g.idle14>=3?'hl-red':g.idle14?'hl-amber':'')+'">'+fmtN(g.idle14)+'</td>'+
-      '<td class="left">'+g.tags.map(function(t){return'<span class="flag-chip '+t.lv+'">'+t.t+'</span>'}).join('')+'</td>'+
-    '</tr>';
-  }).join('');
-  return''+
-  '<div class="gdv-report-wrap" style="margin-top:20px">'+
-    '<div class="gdv-report-header" style="background:linear-gradient(135deg,#0f766e,#2dd4bf)">'+
-      '<div class="title">4. XẾP HẠNG GARA THEO CHẤT LƯỢNG PHỐI HỢP (KHÔNG CHỈ DOANH THU)</div>'+
-      '<div class="period">Top 30 gara có tiền ước/duyệt lớn nhất trong số <b>'+fmtN(G.big.length)+
-        ' gara có ≥'+GQ_MIN_HS+' hồ sơ</b> &nbsp;·&nbsp; <b>'+fmtN(G.slowN)+
-        ' gara</b> đang có dấu hiệu chậm, giữ <b>'+fmtMBC(G.slowBt)+'</b> tiền ước/duyệt</div>'+
-    '</div>'+
-    '<div class="gdv-table-outer" style="max-height:560px;overflow-y:auto">'+
-      '<table class="gdv" style="min-width:1120px">'+
-        '<thead style="position:sticky;top:0;z-index:2"><tr>'+
-          '<th style="width:40px">Stt</th>'+
-          '<th class="lv2" style="min-width:200px;text-align:left">Tên Gara / Showroom</th>'+
-          '<th class="lv2" style="width:70px">Số vụ</th>'+
-          '<th class="lv2" style="width:120px">Tiền ước/duyệt</th>'+
-          '<th class="lv3" style="width:120px">Tiền đã BT cho GR</th>'+
-          '<th class="lv2" style="width:110px" title="'+STAT_TIP.tv+'">Giám định →<br/>Trình duyệt giá</th>'+
-          '<th class="lv2" style="width:110px" title="'+STAT_TIP.tv+'">Bảo lãnh →<br/>Trình ĐNTT</th>'+
-          '<th class="lv3" style="width:90px" title="'+STAT_TIP.tv+'">Chu kỳ<br/>trung vị</th>'+
-          '<th class="lv3" style="width:70px">HS tồn</th>'+
-          '<th class="lv3" style="width:90px">Đứng yên<br/>&gt;14 ngày</th>'+
-          '<th class="lv2" style="min-width:190px;text-align:left">Đánh giá phối hợp</th>'+
-        '</tr></thead>'+
-        '<tbody>'+rows+'</tbody>'+
-      '</table>'+
-    '</div>'+
-    '<div class="gdv-report-footer">'+
-      'Ba cột thời gian là <b>trung vị, đơn vị ngày</b> — nghĩa là một nửa số hồ sơ của gara đó nhanh hơn mức này, '+
-      'một nửa chậm hơn; dùng trung vị thay trung bình để một vài hồ sơ kẹt bất thường không bẻ cong cả gara. '+
-      'Chỉ đánh giá gara có ≥'+GQ_MIN_HS+' hồ sơ đo được. '+
-      'Hai loại chậm cần cách xử lý khác nhau: <b>chậm gửi báo giá</b> (cột Giám định → Trình duyệt giá) là khâu lập dự toán, '+
-      '<b>chậm quyết toán</b> (cột Bảo lãnh → Trình ĐNTT) là khâu hoàn thiện hồ sơ sau sửa chữa. '+
-      'Hàng tô vàng: gara có ít nhất 1 dấu hiệu chậm rõ.'+
-      (G.skipped?' Đã loại <b>'+fmtN(G.skipped)+' hồ sơ</b> ('+fmtMBC(G.skippedBt)+
-        ') có ô tên gara ghi mã nghiệp vụ (TNDS/VCX) thay vì tên gara — xem mục Chất lượng dữ liệu ở tab Tiến độ theo chặng.':'')+
-    '</div>'+
-  '</div>';
 }
 
 /* ── 10. TẦN SUẤT TỔN THẤT THEO XE / KHÁCH HÀNG ──────────────────────────────
@@ -4378,7 +4238,7 @@ function repeatSection(s){
   return''+
   '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#92400e,#f59e0b)">'+
-      '<div class="title">6. TẦN SUẤT TỔN THẤT THEO XE — PHỤC VỤ TÁI TỤC &amp; MỨC KHẤU TRỪ</div>'+
+      '<div class="title">5. TẦN SUẤT TỔN THẤT THEO XE — PHỤC VỤ TÁI TỤC &amp; MỨC KHẤU TRỪ</div>'+
       '<div class="period"><b>'+fmtN(R.c2)+' xe</b> có ≥2 vụ (chiếm '+fmtN(R.hsMulti)+' hồ sơ / '+
         fmtMBC(R.btMulti)+') &nbsp;·&nbsp; <b>'+fmtN(R.c3)+' xe</b> ≥3 vụ &nbsp;·&nbsp; <b>'+
         fmtN(R.c4)+' xe</b> ≥4 vụ &nbsp;·&nbsp; Tổng '+fmtN(R.totalPlates)+' xe trong kỳ</div>'+
@@ -4409,7 +4269,7 @@ function repeatSection(s){
   '</div>'+
   '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#b45309,#fbbf24)">'+
-      '<div class="title">7. KHÁCH HÀNG PHÁT SINH NHIỀU HỒ SƠ (≥5 VỤ TRONG KỲ)</div>'+
+      '<div class="title">6. KHÁCH HÀNG PHÁT SINH NHIỀU HỒ SƠ (≥5 VỤ TRONG KỲ)</div>'+
       '<div class="period"><b>'+fmtN(R.cus.length)+' khách hàng</b> — phần lớn là khách tổ chức / đội xe, '+
         'cần soi tỷ lệ bồi thường trên từng khách khi tái tục</div>'+
     '</div>'+
@@ -4522,7 +4382,7 @@ function debtSection(s){
   return''+
   '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6)">'+
-      '<div class="title">8. CÔNG NỢ &amp; DÒNG TIỀN BỒI THƯỜNG</div>'+
+      '<div class="title">7. CÔNG NỢ &amp; DÒNG TIỀN BỒI THƯỜNG</div>'+
       '<div class="period">Đã duyệt bồi thường nhưng chưa chi trả: <b>'+fmtN(D.pend.length)+' hồ sơ</b> / <b>'+
         fmtMBC(D.pendBt)+'</b> &nbsp;·&nbsp; Tạm ứng chưa thu hồi: <b>'+fmtN(D.adv.length)+' hồ sơ</b> / <b>'+
         fmtMBC(D.advCon)+'</b> &nbsp;·&nbsp; Cứu hộ: '+fmtN(D.cuuHoN)+' HS / '+fmtMBC(D.cuuHoTien)+
@@ -4572,7 +4432,7 @@ function debtSection(s){
   (D.adv.length?
   '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#7f1d1d,#dc2626)">'+
-      '<div class="title">9. TẠM ỨNG CHƯA THU HỒI</div>'+
+      '<div class="title">8. TẠM ỨNG CHƯA THU HỒI</div>'+
       '<div class="period"><b>'+fmtN(D.adv.length)+' hồ sơ</b> còn treo <b>'+fmtMBC(D.advCon)+'</b></div>'+
     '</div>'+
     '<div class="gdv-table-outer" style="max-height:380px;overflow-y:auto">'+
@@ -4669,7 +4529,7 @@ function dataQualitySection(s){
   return''+
   '<div class="gdv-report-wrap" style="margin-top:20px">'+
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#4c1d95,#8b5cf6)">'+
-      '<div class="title">4. CHẤT LƯỢNG DỮ LIỆU KHAI BÁO — ĐỘ TIN CẬY CỦA BÁO CÁO</div>'+
+      '<div class="title">5. CHẤT LƯỢNG DỮ LIỆU KHAI BÁO — ĐỘ TIN CẬY CỦA BÁO CÁO</div>'+
       '<div class="period">Điểm tin cậy ước lượng: <b class="'+sc+'">'+Q.score.toFixed(1)+'/100</b> '+
         'trên '+fmtN(Q.total)+' hồ sơ &nbsp;·&nbsp; Mỗi dòng dưới đây là một chỗ dữ liệu thiếu hoặc nhập sai trường '+
         'làm sai lệch chính các con số ở 3 khối phía trên</div>'+
@@ -4701,13 +4561,16 @@ function switchTab(name,btn){
   const sameTab=document.getElementById('tab-'+name).style.display!=='none';
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  ['dashboard','overview','gdv','tiendo','ruiro','baocao','cldv','search','tienich'].forEach(t=>{
-    document.getElementById('tab-'+t).style.display=t===name?'block':'none';
+  ['dashboard','gdv','tiendo','ruiro','cldv','search','tienich'].forEach(t=>{
+    const p=document.getElementById('tab-'+t);
+    if(p)p.style.display=t===name?'block':'none';
   });
   if(name==='dashboard'){
     syncDashTableHeight();                    // đo lại chiều cao bảng khi tab vừa hiện
-    if(sameTab&&dashDDOpen())closeDashDD();   // bấm lại khi menu đang mở → đóng
-    else openDashDD();                        // xổ menu tiêu chí để người dùng chọn
+    // Nút tab nay là "Tổng quan" nên KHÔNG tự xổ menu khi mới vào tab (sẽ gây nhiễu);
+    // bấm lại nút tab lúc đang đứng ở đây mới bật/tắt menu. Trong tab còn nút 🎯 riêng.
+    if(sameTab){ if(dashDDOpen())closeDashDD(); else openDashDD(); }
+    else closeDashDD();
   }else closeDashDD();
 }
 
@@ -6049,7 +5912,9 @@ function tlSetGdv(code){
   tlPush('b',`<p>✓ Đã lưu <b>GĐV của tôi: ${tlEsc(code)} – ${tlEsc(GDV_NAMES[code])}</b> trên trình duyệt này. Lần sau gõ "hồ sơ của tôi" để xem nhanh.</p>`+tlGdvReport(code,null));
 }
 function tlOpenSearch(v,kind){
-  const btn=[...document.querySelectorAll('.tabs .tab')].find(b=>(b.getAttribute('onclick')||'').includes("'search'"));
+  // Tab Tra cứu không còn nút riêng (11/2026) → mượn nút tab Tổng quan để switchTab gắn .active
+  const btn=[...document.querySelectorAll('.tabs .tab')].find(b=>(b.getAttribute('onclick')||'').includes("'search'"))
+            ||(typeof dashTabBtn==='function'?dashTabBtn():null);
   if(!btn||typeof doSearchHSBT!=='function')return;
   switchTab('search',btn);
   const set=(id,val)=>{const el=tlEl(id);if(el)el.value=val};

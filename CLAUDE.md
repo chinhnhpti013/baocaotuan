@@ -77,23 +77,32 @@ Cột quan trọng:
 
 | Tab | ID | Mô tả |
 |-----|----|-------|
-| Tổng quan | `tab-overview` | KPI tổng hợp + biểu đồ + bảng TLBT theo nghiệp vụ + **Dòng chảy hồ sơ theo tháng** (Đợt 2, `flowSection(s)`) + Infographic theo địa bàn (hàm `renderInfographic()`, trả về chuỗi HTML và được nối vào cuối `renderOverview(s)` thay vì render tab riêng) |
-| Theo GĐV | `tab-gdv` | Bảng tổng hợp hồ sơ tồn theo GĐV — kiểu Excel, 4 hàng header |
-| Báo cáo XO | `tab-baocao` | BC1 Top 30 Gara/Showroom doanh thu SC + BC2 Danh sách HS tồn ≥90 ngày + BC3 tồn 46–89 ngày + **BC4 Xếp hạng gara theo chất lượng phối hợp** (Đợt 2, `garageQualitySection(s)`) |
-| Đề xuất cải tiến CLDV | `tab-cldv` | Phân tích 3 trục: Chất lượng dịch vụ · Hiệu quả & Năng suất · Quan hệ khách hàng; hàm `renderCLDV(s)` |
-| Dashboard động | `tab-dashboard` | Dashboard đa chiều: **7 tiêu chí** chọn từ menu thả xuống của chính nút tab "🎯 Dashboard động" (tab không còn thanh "Xem theo" bên trong — xem mục riêng bên dưới) (Giám định viên / Địa bàn / Nghiệp vụ / Hãng xe / Gara-Showroom / Trạng thái hồ sơ / Số tiền bình quân/vụ) → 3 biểu đồ và bảng chi tiết tính lại theo tiêu chí nhóm đã chọn. **Không có hàng KPI cố định** — đã gỡ (09/2026) vì các số đó không đổi khi bấm chuyển tiêu chí và đã hiển thị ở tab Tổng quan; tab này chỉ chứa nội dung thực sự thay đổi theo lựa chọn. Hàm `renderDashboard(s)` (dùng `s.rows`), `setDashDim(dim)` (đổi tiêu chí, re-render chỉ tab này), `computeDashGroups(data,dim)` → `groupRowsByDim(data,dim)` → `dimKeyOf(r,dim)` + `computeGroupStat(gd)`. `computeGroupStat` dùng đúng công thức đã chuẩn hoá: `tyLeGQ = daGQ/tongCanGQ`, `tyLeTon = tongTon/(hsps/curMonth)`, cấp độ cảnh báo <80% / 80–130% / >130% — đã đối chiếu khớp 100% với `gdvStats` trong `computeStats()`. Bảng chi tiết do `dashDetailTable(groups)` sinh, **3 bộ cột khác nhau** (xem mục dưới) |
-| Tra cứu tiến trình | `tab-search` | Thứ tự ô: **Biển kiểm soát** (đầu tiên) → Số HSBT → Tên garage → GĐV thụ lý → Trạng thái hồ sơ. Tra cứu hồ sơ theo Biển kiểm soát/Số HSBT (khớp một phần, OR) kết hợp lọc **Tên garage (thường gọi)** (ô text + `datalist` gợi ý, khớp một phần không phân biệt hoa thường/dấu qua `normText`, fallback `(ĐKKD)` qua `searchGarageOf(r)`, AND), GĐV thụ lý (dropdown, AND) và **Trạng thái hồ sơ dạng dropdown nhiều checkbox** (`#search-trangthai.tt-multi`, mỗi trạng thái 1 ô kèm số HS, nút Chọn tất cả/Bỏ chọn; các trạng thái đã tích OR với nhau, AND với tiêu chí khác; không tích hoặc tích hết = không lọc; hàm `getCheckedTt()`, `updateTtLabel()`, `setAllTt(v)`, `toggleTtPanel(e)`, `closeTtPanel()` — đóng khi bấm ra ngoài/Esc/Tìm kiếm; danh sách build lại trong `buildSearchFilterOptions()` và giữ các ô đang tích) — mọi tiêu chí đều tuỳ chọn, chỉ cần 1 trong 5; bảng kết quả 18 cột (gồm GĐV thụ lý + Tên garage + 16 cột mốc thời gian/tiền/trạng thái); nút **📥 Tải Excel (.xlsx)** trên header kết quả gọi `exportSearchXlsx()` xuất đúng bộ cột của bảng từ `SEARCH_LAST` (kết quả tra cứu gần nhất) — ngày ghi số serial Excel `dd/mm/yyyy` (tự quy đổi theo ngày địa phương, tránh lệch múi giờ), tiền dạng số `#,##0`, có 2 dòng tiêu đề/điều kiện + AutoFilter, tên file `TraCuu_HSBT_yyyymmdd_HHmm.xlsx`; hàm `renderSearch()` (khởi tạo UI 1 lần, cờ `searchTabInit`) + `buildSearchFilterOptions()` (build lại cả 2 dropdown GĐV và Trạng thái hồ sơ mỗi lần renderAll, động theo giá trị thực tế có trong `RAW` — tức theo đúng dữ liệu Google Drive/Dulieu.xlsx đang tải, không hardcode danh sách; giữ lựa chọn hiện tại) + `doSearchHSBT()` (đọc `RAW` toàn bộ, không phụ thuộc filter bar) |
-| Tiến độ theo chặng | `tab-tiendo` | **Thêm 11/2026 (Đợt 1)** — đo chu kỳ giải quyết từ 18 mốc thời gian (trước đó các mốc này chỉ được *hiển thị* ở tab Tra cứu / thẻ hồ sơ Trợ lý GĐV, chưa bao giờ được đo). 3 khối: (1) **Thời gian trung bình từng chặng** — 12 chặng trong `CYCLE_LEGS`, mỗi chặng có TB/trung vị/p90/max + chip khâu phụ trách + thanh tỷ trọng thời gian; (2) **Hồ sơ tồn đang nghẽn ở bước nào** — nhóm HS tồn theo mốc quy trình sau cùng đã đi qua (`lastStage`), kèm cột *Khâu phải xử lý tiếp* lấy từ `STAGE_NEXT`; (3) **Top 50 hồ sơ đứng yên lâu nhất**. Hàm `renderStages(s)` dùng `s.cycle` do `computeCycleStats()` sinh. Khối (4) **Chất lượng dữ liệu khai báo** thêm ở Đợt 2 (`dataQualitySection(s)`) |
-| Kiểm soát rủi ro | `tab-ruiro` | **Thêm 11/2026 (Đợt 1)** — 5 khối: (1) giảm trừ BT theo lý do, (2) giảm trừ theo GĐV (tỷ lệ phát hiện = HS có giảm trừ ÷ HS thụ lý), (3) tổng hợp **dấu hiệu cần rà soát**, (4) danh sách top 100 HS có dấu hiệu, (5) top 60 HS có giảm trừ theo số tiền. Hàm `renderRisk(s)` dùng `s.risk` do `computeRiskStats()` sinh. ⚠️ Khối 3–4 chỉ nêu **dấu hiệu cần rà soát**, không kết luận trục lợi — đã ghi rõ trong `.note-box` đầu tab, **không được bỏ dòng này**. Đợt 2 thêm mục 6–7 (tần suất tổn thất theo xe / khách hàng, `repeatSection(s)`) và mục 8–9 (công nợ, tạm ứng chưa thu hồi, `debtSection(s)`) |
-| Tiện ích | `tab-tienich` | **Không có nút tab riêng** (11/2026) — mở từ **dòng cuối droplist** của nút tab "🎯 Dashboard động" (`openTienichTab()`). Bảng liên kết tới các công cụ web hỗ trợ giám định (ghép ảnh giám định xe, ghép ảnh giấy tờ xe GTX, tạo biểu mẫu giám định, tra giá phụ tùng). Nội dung **tĩnh, không phụ thuộc dữ liệu** — `renderTienich()` dựng 1 lần (cờ `el.dataset.ready`) từ mảng `UTIL_LINKS` (`ico`/`name`/`desc`/`url`/`note`); thêm tiện ích mới chỉ cần thêm 1 phần tử vào mảng này. Mỗi dòng có liên kết mở `target="_blank" rel="noopener noreferrer"` + nút 📋 `utilCopy(url,btn)` (Clipboard API, có nhánh dự phòng `execCommand` cho file://). Bảng kẻ ô đầy đủ (`.util-tbl`) nên phải ghi đè CSS chung `th{white-space:nowrap}` và `tr:last-child td{border-bottom:none}`; `min-width:640px` + `overflow-x:auto` ở khung bọc để điện thoại cuộn ngang thay vì vỡ layout |
+| **Tổng quan** | `tab-dashboard` | Tab mặc định. Pane chứa **2 khối con**: `#pane-overview` (KPI · bảng + chart TLBT theo nghiệp vụ · **Dòng chảy hồ sơ theo tháng** · Infographic theo địa bàn) và `#dash-dyn` (**Phân tích đa chiều** 7 tiêu chí — chính là "Dashboard động" cũ). Giữ id `tab-dashboard` để toàn bộ CSS/JS của phần đa chiều không phải sửa. `renderOverview(s)` ghi vào `#pane-overview`, `renderDashboard(s)` ghi vào `#dash-dyn` |
+| **Theo GĐV** | `tab-gdv` | **Bảng "TỔNG HỢP HỒ SƠ TỒN THEO GIÁM ĐỊNH VIÊN (NV XO)" giữ nguyên 100%** (4 hàng header, 18 cột) + **Thẻ điểm chu kỳ GĐV** (đã gộp thêm 3 cột giảm trừ) + bảng HS phát sinh theo tháng + 1 biểu đồ chu kỳ |
+| **Tiến độ & Hồ sơ tồn** | `tab-tiendo` | 1. Thời gian TB từng chặng (12 chặng) · 2. Hồ sơ tồn đang nghẽn ở bước nào · 3. **Danh sách hồ sơ tồn** (gộp BC2 + BC3 + Top 50 đứng yên) · 4. **Gara/Showroom** (gộp BC1 doanh thu + BC4 chất lượng phối hợp) · 5. Chất lượng dữ liệu khai báo |
+| **Kiểm soát rủi ro** | `tab-ruiro` | 1. Giảm trừ theo lý do · 2. Tổng hợp dấu hiệu cần rà soát · 3. DS hồ sơ cần rà soát (top 100) · 4. DS hồ sơ có giảm trừ (top 60) · 5. Tần suất tổn thất theo xe · 6. Khách hàng ≥5 hồ sơ · 7. Công nợ · 8. Tạm ứng chưa thu hồi. ⚠️ Mục 2–3 chỉ nêu **dấu hiệu cần rà soát**, không kết luận trục lợi — `.note-box` đầu tab **không được bỏ** |
+| **Đề xuất cải tiến CLDV** | `tab-cldv` | Giữ nguyên — 3 trục: Chất lượng dịch vụ · Hiệu quả & Năng suất · Quan hệ khách hàng; hàm `renderCLDV(s)` |
+| Tra cứu tiến trình | `tab-search` | **Không có nút tab** (11/2026) — vào từ menu thả xuống (`openSearchTab()`). Nội dung giữ nguyên: tra theo Biển kiểm soát / Số HSBT + lọc gara, GĐV, trạng thái; nút 📥 Tải Excel |
+| Tiện ích | `tab-tienich` | **Không có nút tab** — vào từ menu thả xuống (`openTienichTab()`). Bảng liên kết công cụ hỗ trợ giám định, dựng từ mảng `UTIL_LINKS` |
 
-> Tab "Phân loại tồn" (`tab-aging`) đã bị xóa (06/2026) — nội dung phân phối thời gian tồn đã được tích hợp vào tab Đề xuất cải tiến CLDV (Trục 1). `warnRows` trong `computeStats()` vẫn giữ nguyên.
-> Tab "Cảnh báo" (`tab-warnings`) đã bị xóa (06/2026) — các bảng HS tồn >90 ngày và GĐV nguy hiểm đã có trong tab Báo cáo XO và tab Tổng quan.
-> Khối "Đánh giá Tổng quan" (`generateAnalysis(s)`) đã bị xóa hoàn toàn (09/2026) theo yêu cầu — tab Tổng quan nay kết thúc ở khối Infographic theo địa bàn. `renderInfographic()` không còn nhận tham số `s`.
-> Tab "Tổng hợp cảnh báo" (`tab-infographic`) đã bị xóa (09/2026) — báo cáo "BÁO CÁO TIẾN ĐỘ GIẢI QUYẾT HỒ SƠ TỒN ĐỌNG PTI SOS" (Infographic theo địa bàn) đã chuyển sang cuối tab Tổng quan. **Thứ tự nút tab hiện tại (11/2026 — 8 nút)**: **Dashboard động** → Tổng quan → Theo GĐV → **Tiến độ theo chặng** → **Kiểm soát rủi ro** → Báo cáo XO → Đề xuất cải tiến CLDV → Tra cứu tiến trình. Hai tab Đợt 1 chèn ở vị trí 4–5 nên Báo cáo XO / CLDV / Tra cứu dịch xuống `nth-child(6)/(7)/(8)` — màu CSS đã gán lại để mỗi tab **giữ đúng màu cũ**. Tab **Tiện ích** (thêm 11/2026) **không có nút tab**: vào bằng dòng cuối droplist của nút "🎯 Dashboard động"; `.tabs .tab:nth-child(9)` không tồn tại. Dashboard động là tab **mặc định mở khi vào trang** (`class="tab active"` + `#tab-dashboard` không có `display:none`).
-> ⚠️ Khi đổi thứ tự tab phải sửa đồng bộ **4 chỗ** (nhóm nút tab nay nằm trong `.topbar`, id `#main-tabs`): (1) thứ tự `<button class="tab">`, (2) thứ tự `<div id="tab-...">` kèm `style="display:none"` (đúng 1 pane hiện, 1 nút `active`, và 2 cái phải cùng trỏ 1 tab), (3) CSS `.tabs .tab:nth-child(n)` — đánh số theo **vị trí**, không theo tab, nên phải gán lại màu để mỗi tab giữ đúng màu cũ, (4) mảng trong `switchTab()`.
+> **Tối ưu hoá 11/2026 — từ 8 nút tab còn 5.** Nguyên tắc: mỗi đối tượng chỉ còn **một** bảng, biểu đồ nào lặp lại đúng nội dung bảng ngay cạnh thì bỏ.
+> - **Tab bị xoá**: `tab-overview` (nội dung chuyển vào `#pane-overview` trong tab Tổng quan) và `tab-baocao` (BC1→BC4 gộp thành `garageSection()`, BC2+BC3 gộp vào `tonListSection()`). Hàm `renderBaoCao()` **đã xoá hẳn**.
+> - **Bảng đã gộp**: gara (BC1 + BC4 → `garageSection`) · hồ sơ tồn (BC2 + BC3 + Top 50 đứng yên → `tonListSection`) · GĐV (bảng "giảm trừ theo GĐV" ở tab Kiểm soát rủi ro → 3 cột trong `gdvScorecard`).
+> - **Biểu đồ: 24 → 13.** Đã bỏ: `chart-bar-main`, `chart-donut-age` (Tổng quan — lặp tab Theo GĐV và tab CLDV); `chart-donut-gdv`, `chart-gdv-tyle`, `chart-gdv-nv`, `chart-gdv-aging`, `chart-gdv-leg` (Theo GĐV — lặp đúng các cột của 2 bảng ngay trên); `chart-stage-stuck` (Tiến độ — lặp bảng 2); `chart-gt-reason`, `chart-gt-gdv` (Rủi ro — lặp bảng 1 và bảng đã gộp vào thẻ điểm GĐV). Đã gộp `chart-flow-ps` + `chart-flow-ton` thành **1 chart** (2 cột + 1 đường tồn lũy kế, cùng trục vì cùng bậc độ lớn). **Tab CLDV giữ nguyên 6 chart.**
+> - **Thứ tự nút tab (5)**: Tổng quan → Theo GĐV → Tiến độ & Hồ sơ tồn → Kiểm soát rủi ro → Đề xuất cải tiến CLDV. Màu `.tabs .tab:nth-child(1..5)` = xanh dương · xanh lá · xám thép · đỏ đậm · hồng đỏ.
+> - ⚠️ Khi đổi thứ tự tab vẫn phải sửa đồng bộ **4 chỗ**: (1) thứ tự `<button class="tab">`, (2) thứ tự `<div id="tab-...">` kèm `style="display:none"`, (3) CSS `.tabs .tab:nth-child(n)` (đánh số theo **vị trí**), (4) mảng trong `switchTab()` — mảng này nay là `['dashboard','gdv','tiendo','ruiro','cldv','search','tienich']` và có guard `if(p)` vì 2 pane cuối không có nút.
 
-### Tiêu chí nhóm của tab Dashboard động
+### Menu thả xuống (trước là menu của "Dashboard động")
+
+- Mở bằng **nút "Xem theo: … ▾"** (`.dash-pick`) nằm trong khối Phân tích đa chiều — đây là lối vào chính. Bấm **lại** nút tab Tổng quan khi đang đứng ở tab đó cũng bật/tắt menu.
+- ⚠️ **Không còn tự xổ menu khi vào tab**: nút tab nay mang nghĩa "Tổng quan", xổ menu mỗi lần bấm sẽ gây nhiễu. `switchTab('dashboard')` chỉ toggle menu khi `sameTab`.
+- Menu có **9 mục**: 7 tiêu chí nhóm + `🔍 Tra cứu tiến trình` (`openSearchTab()`) + `🧰 Tiện ích` (`openTienichTab()`). Hai mục cuối là **lối vào duy nhất** của 2 tab không có nút.
+- `positionDashDD()` neo vào `.dash-pick` nếu nút đó đang hiện, nếu không thì vào nút tab. ⚠️ Vì nút neo nay có thể nằm giữa trang nên hàm **kẹp cả chiều dọc**: không đủ chỗ thả xuống thì lật lên trên nút, vẫn không đủ thì ép vào trong khung nhìn. Thiếu đoạn này menu sẽ tràn khỏi màn hình khi nút ở sát đáy.
+- Listener click ngoài phải bỏ qua **cả** `.tabs .tab` **và** `.dash-pick`, nếu không cú bấm mở menu sẽ bubble lên và đóng ngay.
+- Trợ lý GĐV (`tlOpenSearch`) tìm nút tab có `onclick` chứa `'search'`; nút đó không còn nên hàm **fallback sang `dashTabBtn()`** — đừng bỏ nhánh fallback này.
+
+### Tiêu chí nhóm của khối Phân tích đa chiều
+
 
 | dim | Nguồn cột | Giới hạn nhóm (`DASH_TOP_N`) |
 |-----|-----------|------------------------------|
@@ -113,7 +122,7 @@ Cột quan trọng:
 - `normDimVal(v)`: giá trị rỗng hoặc `"-"` trong file nguồn → gom về nhóm `"(Không xác định)"` (dữ liệu thật có 27 HS trạng thái `-` và 44 HS gara `-`).
 - Mỗi nhóm có `label` (đầy đủ, dùng cho bảng) và `short` (cắt ≤22 ký tự, dùng cho nhãn biểu đồ) — tên gara/GĐV dài sẽ phá layout chart nếu dùng `label`.
 
-#### Ba bộ cột của bảng chi tiết Dashboard động (`dashDetailTable(groups)`)
+#### Ba bộ cột của bảng chi tiết Phân tích đa chiều (`dashDetailTable(groups)`)
 
 | dim | Bộ cột |
 |-----|--------|
@@ -129,13 +138,13 @@ Cột quan trọng:
 - Bảng cuộn trong `.dash-table-scroll` (`flex:1;min-height:0;overflow:auto`), `thead` sticky top + `tfoot` sticky bottom, scrollbar tuỳ biến màu cyan cùng tông tab. Table trong khung này dùng `border-collapse:separate` — bắt buộc, vì `collapse` làm mất viền ô khi sticky.
 - **Không đặt dòng chú thích dưới bảng** (đã gỡ 09/2026) — mỗi dòng chú thích ăn mất ~2 dòng danh mục. Thông tin phụ đặt ở: tiêu đề `<h3>` (ngưỡng lọc của Hãng xe/Gara), pill `.dash-info`, hoặc `title=` tooltip của ô (vd bình quân/vụ tính cả HS chưa ước).
 - **Co cột tự động — bảng không có thanh cuộn ngang** (09/2026): `.dash-table-scroll` đặt `overflow-x:hidden`; tiêu đề cột bỏ `white-space:nowrap` (wrap ở khoảng trắng, `overflow-wrap:break-word`) còn ô số giữ `nowrap`. `fitDashCols(card)` đo `table.scrollWidth > scroll.clientWidth` rồi thêm dần các mức **cộng dồn** `dash-narrow-1…5` (giảm padding ngang 10→2px, rồi cỡ chữ) và cuối cùng `dash-wrap-num` + `dash-break-any`. Cỡ chữ của các mức narrow đặt bằng **`em` trên `thead/tbody/tfoot`** để nhân dồn với `.dash-dense-*` (đặt `rem` trên `table`) thay vì ghi đè nhau. ⚠️ Không bao giờ cho bẻ giữa dãy số (`dash-break-any` chỉ áp cho `th` và `td:first-child`) — "927" tách thành "92/7" gây đọc sai. Thứ tự gọi trong `syncDashTableHeight()`: `fitDashCols` → `fitDashRows` → `fitDashCols` (co dòng cũng đổi cỡ chữ nên phải đo lại bề ngang). Đo thật: 1600px → `narrow-1`, 1280px → `narrow-2`, 1024px → mức cuối; `overflowX = 0` ở cả 7 tiêu chí.
-- **Menu 7 tiêu chí thả xuống từ nút tab "🎯 Dashboard động"** (10/2026): tab này **không còn thanh "Xem theo"** trong nội dung (đã gỡ `.dash-dd-trigger`, `.dash-dd-menu`, `.dash-dd-caret`, `.dash-toolbar-label`); `.dash-toolbar` chỉ còn pill `.dash-info`. Khung menu là `#dash-dim-dd.dash-dd > #dash-dim-list.dash-dd-list` đặt **ngay sau `.tabs` trong HTML**, ẩn mặc định (`opacity:0;visibility:hidden`), hiện khi có class `.open`.
+- **Menu tiêu chí** (10/2026, sửa 11/2026): khung menu là `#dash-dim-dd.dash-dd > #dash-dim-list.dash-dd-list` đặt **ngay sau `.tabs` trong HTML**, ẩn mặc định (`opacity:0;visibility:hidden`), hiện khi có class `.open`. Mở bằng nút `.dash-pick` trong khối Phân tích đa chiều (xem mục "Menu thả xuống" ở trên) hoặc bấm lại nút tab Tổng quan.
   - **Luồng**: bấm nút tab → `switchTab('dashboard')` → `openDashDD()` (gọi `buildDashDimMenu()` dựng 7 mục từ `DASH_DIM_BTN` + đánh dấu ✓ mục `DASH_DIM`, rồi `positionDashDD()` và gắn `.open`). Chọn 1 mục → `setDashDim()` gọi `closeDashDD()` rồi re-render. Muốn đổi tiêu chí → bấm lại nút tab. Bấm nút tab **khi đang ở tab này và menu đang mở** thì đóng (biến `sameTab` đầu `switchTab` so `style.display` của pane trước khi đổi). Đóng thêm khi: `onmouseleave` trên khung menu, bấm ra ngoài, Esc, hoặc chuyển tab khác.
   - ⚠️ **`position:fixed` + JS định vị** (`positionDashDD()` lấy `getBoundingClientRect()` của `#tab-btn-dashboard`, đặt `top = rect.bottom + 8`, kẹp `left` để không tràn mép phải). Không đặt menu `absolute` bên trong `.tabs`: ở ≤600px `.tabs` có `overflow-x:auto` nên menu sẽ bị cắt. Vì fixed nên phải `positionDashDD()` lại khi `scroll`/`resize` (chỉ khi đang mở).
   - ⚠️ Listener click trên `document` **phải bỏ qua** `e.target.closest('.tabs .tab')` — cú bấm nút tab vừa mở menu sẽ bubble tới listener và đóng ngay trong cùng cú bấm.
   - Nút tab mang `id="tab-btn-dashboard"` + `<span class="tab-caret">▾</span>` (xoay 180° khi có class `.dd-open`). Bọc nút tab trong thẻ khác sẽ **phá màu tab** vì CSS màu gán theo `.tabs .tab:nth-child(n)` — đừng làm, menu đã tách rời khỏi `.tabs`.
   - Nhãn mục lấy từ `DASH_DIM_BTN` (mảng `[dim, nhãn có icon]`, khác `DASH_DIM_LABEL` dùng cho tiêu đề biểu đồ) — thêm tiêu chí mới phải thêm vào mảng này.
-  - **Dòng cuối droplist "🧰 Tiện ích" không phải tiêu chí nhóm** (11/2026): `buildDashDimMenu()` nối thêm nút `data-d="tienich" class="dash-dd-go"` gọi `openTienichTab()` → `closeDashDD()` + `switchTab('tienich', dashTabBtn())`. Truyền `dashTabBtn()` vì `switchTab` cần một nút để gắn `.active`, và đây là lối vào duy nhất của tab Tiện ích nên nút "Dashboard động" sáng là đúng ngữ cảnh. CSS: màu indigo ở `.dash-dd [data-d="tienich"]`, vạch ngăn ở `.dash-dd-list button.dash-dd-go::before`. Mục này không bao giờ có dấu ✓ vì `DASH_DIM` không nhận giá trị `tienich`.
+  - **Hai dòng cuối droplist không phải tiêu chí nhóm** (11/2026): `buildDashDimMenu()` nối thêm `data-d="search" class="dash-dd-go"` → `openSearchTab()` và `data-d="tienich"` → `openTienichTab()`, cả hai gọi `closeDashDD()` rồi `switchTab(..., dashTabBtn())`. Truyền `dashTabBtn()` vì `switchTab` cần một nút để gắn `.active`. CSS: vàng cam ở `.dash-dd [data-d="search"]`, indigo ở `.dash-dd [data-d="tienich"]`, vạch ngăn ở `.dash-dd-list button.dash-dd-go::before` (đặt ở mục Tra cứu — mục đầu của nhóm lối-vào). Hai mục này không bao giờ có dấu ✓ vì `DASH_DIM` không nhận các giá trị đó.
   - Hàm: `dashDDEl()`, `dashTabBtn()`, `dashDDOpen()`, `buildDashDimMenu()`, `positionDashDD()`, `openDashDD()`, `closeDashDD()`.
   - ⚠️ Kiểm thử bằng Chrome headless: `--virtual-time-budget` tua timer nhưng **không tua CSS transition**, nên ảnh chụp ngay sau khi mở menu ra khung trắng rỗng (opacity vẫn 0) dù DOM đã đủ 7 nút — chèn `*{transition:none!important}` vào bản test trước khi chụp. Biểu đồ vẽ trong `setTimeout` nên kịch bản test phải **chờ giữa các bước**; bấm liên tiếp trong cùng tick làm 2 lần vẽ chồng canvas và chart giữ nhãn cũ.
 - **Màu các mục "Xem theo"** (10/2026): mỗi tiêu chí 1 màu riêng gán theo `data-d` (gdv xanh dương · diaban xanh lá · nv tím · hangxe hổ phách · garage cyan · trangthai hồng · mucTien cam), qua 5 biến `--sg-bg1/--sg-bg2` (nền nhạt khi thường), `--sg-fg`, `--sg-d1/--sg-d2` (gradient khi `.active`), `--sg-sh` (bóng). Khai báo trên `.dash-dd [data-d="…"]` nên áp cho mọi mục trong menu. Gán theo `data-d` **không** theo `nth-child` — đổi thứ tự mục không làm lệch màu; thêm tiêu chí mới phải thêm 1 dòng biến tương ứng.
@@ -158,7 +167,7 @@ Quy ước tồn dùng chung `parseTon` / `isResolved` — **không định ngh�
 | `STAGE_FLOW` | 11 mốc theo đúng trình tự quy trình, dùng cho `lastStage(r)` (bước dừng cuối). **Không có 3 mốc CNG** — dữ liệu thật chỉ 1–2 HS (0,1%) nên không đo được |
 | `STAGE_NEXT` | Bản đồ *bước dừng → việc phải làm tiếp* + class chip khâu phụ trách. Dùng **Make / Check / Validate** (xem mục vai trò bên dưới) |
 | `CYCLE_LEGS` | 12 chặng được đo; mỗi chặng có `own` (khâu phụ trách), `cls` (màu chip), `short` (nhãn biểu đồ), `sla` (mốc đọc nhanh **do báo cáo đặt**, không phải thời hạn quy định) |
-| `STAT_TIP` · `statLegend()` | Chú thích TB / Trung vị / p90 / Tối đa — gắn `title=` trên `<th>` **và** in thành dòng dưới bảng (tooltip không thấy được trên điện thoại và khi in). Dùng ở cả 3 bảng có cột thời gian: bảng chặng, thẻ điểm GĐV, BC4 gara |
+| `STAT_TIP` · `statLegend()` | Chú thích TB / Trung vị / p90 / Tối đa — gắn `title=` trên `<th>` **và** in thành dòng dưới bảng (tooltip không thấy được trên điện thoại và khi in). Dùng ở cả 3 bảng có cột thời gian: bảng chặng, thẻ điểm GĐV, bảng gara |
 | `dayGap(a,b)` · `quantile(sorted,q)` · `statsOf(arr)` | Số ngày giữa 2 mốc · phân vị nội suy · `{n,avg,med,p90,max}` |
 | `dataAsOf(data)` | Mốc "dữ liệu đến ngày" = mốc thời gian lớn nhất trong toàn bộ dữ liệu. **Dùng thay `Date.now()`** khi tính số ngày đứng yên — mở lại file cũ mà lấy hôm nay thì số ngày đứng yên bị phóng đại |
 
@@ -215,22 +224,22 @@ Chu kỳ Mở HSBT → Duyệt BT: TB 30,4 · trung vị 22 · p90 63 ngày. Hai
 
 ## Engine Đợt 2 — 5 báo cáo bổ sung (11/2026)
 
-Tất cả gắn vào **tab sẵn có**, không thêm nút tab (thanh tab đã 8 nút):
+Tất cả gắn vào **tab sẵn có**, không thêm nút tab:
 
 | # | Báo cáo | Hàm dựng HTML | Gắn vào |
 |---|---------|---------------|---------|
 | 3 | Dòng chảy hồ sơ theo tháng (PS · GQ · tồn lũy kế) | `flowSection(s)` ← `computeFlowStats()` | cuối tab **Tổng quan**, ngay trước `renderInfographic()` |
-| 11 | Xếp hạng gara theo chất lượng phối hợp | `garageQualitySection(s)` ← `computeGarageStats()` | **BC4** cuối tab Báo cáo XO |
+| 11 | Gara: doanh thu + chất lượng phối hợp | `garageSection(s)` ← `computeGarageStats()` | **mục 4** tab Tiến độ & Hồ sơ tồn (11/2026 gộp với BC1) |
 | 10 | Tần suất tổn thất theo xe / khách hàng | `repeatSection(s)` ← `computeRepeatStats()` | **mục 6–7** tab Kiểm soát rủi ro |
 | 13 | Công nợ & dòng tiền bồi thường | `debtSection(s)` ← `computeDebtStats()` | **mục 8–9** tab Kiểm soát rủi ro |
-| 12 | Chất lượng dữ liệu khai báo | `dataQualitySection(s)` ← `computeDataQuality()` | **mục 4** tab Tiến độ theo chặng |
+| 12 | Chất lượng dữ liệu khai báo | `dataQualitySection(s)` ← `computeDataQuality()` | **mục 5** tab Tiến độ & Hồ sơ tồn |
 
 Các hàm `*Section(s)` **trả về chuỗi HTML** để hàm render của tab nối vào `innerHTML`; hàm nào cần biểu đồ thì tự `setTimeout(...,10)` bên trong (timer chạy sau khi chuỗi đã gắn vào DOM nên canvas chắc chắn tồn tại). Engine Đợt 2 **không** nằm trong `computeStats()` — mỗi section tự tính từ `s.rows` để tab nào không mở thì cũng không tốn gì thêm ngoài 1 lượt duyệt mảng.
 
 ### Bốn quyết định dễ bị "sửa nhầm" — đừng đảo lại
 
 1. **Tháng đầu dải bị loại khỏi tỷ lệ cả kỳ** (`computeFlowStats`): file xuất của hệ thống cắt theo mốc ngày (bản 10/2026: *Từ ngày 01/01/2026*), nên T11–12/2025 có hồ sơ tồn chuyển sang nhưng **0 hồ sơ duyệt BT** — những hồ sơ duyệt xong trước mốc đã bị cắt. Các tháng trước tháng đầu tiên có `gq>0` được gắn `partial:true`, tô xám, loại khỏi `sumPs/sumGq` và khỏi chart cột PS/GQ. Tính cả vào thì tỷ lệ giải quyết ra **93,2%** (sai, nghe như không theo kịp); loại đúng thì ra **102,8%** trên 10 tháng đủ dữ liệu.
-2. **`NON_GARA` loại "gara ảo"** (`computeGarageStats`): 69 hồ sơ ghi `TNDS` vào ô tên gara (hồ sơ TNDS không qua gara). Không loại thì "TNDS" đứng **đầu bảng xếp hạng gara** với 1,8 tỷ. Số bị loại được nêu ở chân bảng BC4. ⚠️ **BC1 (Top 30 doanh thu gara) cố ý KHÔNG loại** — người dùng đã chốt giữ nguyên (11/2026) để số của báo cáo cũ không đổi. Vì vậy BC1 và BC4 lệch nhau ở chỗ này là **đúng ý**, đừng "sửa" cho hai bảng giống nhau.
+2. **"Gara ảo" TNDS** (`computeGarageStats` + `isRealGara`/`NON_GARA`): 69 hồ sơ ghi `TNDS` vào ô tên gara (hồ sơ TNDS không qua gara). Người dùng đã chốt (11/2026) **giữ dòng này trong bảng** để tổng tiền khớp báo cáo doanh thu cũ → sau khi gộp BC1+BC4, dòng đó vẫn hiện nhưng mang cờ `fake:true`: tô xám nghiêng, **không chấm điểm phối hợp**, 3 cột thời gian để "–", và không tính vào `big`/`slowN`. Đừng xoá dòng, cũng đừng chấm điểm nó.
 3. **Công nợ loại hồ sơ hủy và hồ sơ 0 đồng** (`computeDebtStats`): điều kiện thô "đã duyệt BT mà chưa trả tiền" trúng 112 HS, nhưng 83 HS đã hủy + 19 HS tiền ước = 0 → công nợ thật chỉ **10 HS / 40 tr**. Số bị loại hiện ở chân bảng.
 4. **Điểm tin cậy dữ liệu chỉ tính lỗi mức bản ghi** (`computeDataQuality`): mục gắn `noScore:true` vẫn hiện trong bảng nhưng không trừ điểm — gồm "nguyên nhân dồn vào 1 giá trị" (91,8% × trọng số 0,6 sẽ kéo điểm xuống 34/100, vô nghĩa vì đó là thói quen khai báo chứ không phải bản ghi lỗi) và "giám định chi tiết trước khi mở HSBT" (43,3%, hợp lệ về nghiệp vụ). Có `noScore` thì điểm ra **93,8/100**.
 
@@ -244,7 +253,7 @@ Các hàm `*Section(s)` **trả về chuỗi HTML** để hàm render của tab 
 
 Dòng chảy: 10 tháng đủ dữ liệu, PS 1.978 / duyệt BT 2.034 = **102,8%**, tồn lũy kế cuối kỳ 166 (đỉnh 290 ở T2/2026). Gara: **74/138 gara có ≥5 HS**, trong đó **27 gara** có dấu hiệu chậm, giữ **5,23 tỷ** tiền ước/duyệt; chậm báo giá nặng nhất là Garage Hoàng Anh Đông Triều (trung vị 47 ngày, 132 HS) và Garage Minh Tân Auto (50 ngày); chậm quyết toán: Garage auto Tiến Đạt 18 ngày, Vinfast Hạ Long 17, Ford Quảng Ninh 16,5. Tần suất: 416 xe ≥2 vụ (962 HS / 8,14 tỷ), 102 xe ≥3, 23 xe ≥4; 39 khách hàng ≥5 HS. Công nợ: 10 HS / 40 tr; tạm ứng chưa thu hồi 3 HS / 135 tr; cứu hộ 19 HS / 60 tr. Chất lượng dữ liệu: **93,8/100**.
 
-> **Thanh tab với 8 nút**: mốc xuống hàng của topbar đã nâng **1150px → 1400px**. Đo thật: 1878px không co · 1578px `tt-c1+c2` · 1478/1418px tới `tt-c4` · dưới 1400px topbar wrap, thanh tab chiếm trọn hàng dưới. Giữ mốc cũ 1150px thì dải 1151–1250px phải bật `tt-scroll` (cỡ chữ `.53rem`, khó đọc).
+> **Thanh tab**: giai đoạn 8 nút phải nâng mốc xuống hàng lên 1400px; **từ khi gom còn 5 nút (11/2026) đã trả về 1150px**. Đo thật với 5 nút: 1878px và 1378px không cần co (khoảng hở tiêu đề↔tab 557px / 57px) · 1228px `tt-c1+c2` · ≤1150px topbar wrap. Mọi bề ngang `overflowX = 0`, không phải dùng `tt-scroll`.
 
 ## Trợ lý ảo GĐV (popup "💬 Trợ lý GĐV")
 
@@ -358,14 +367,13 @@ Mỗi tab có màu gradient riêng, hiệu ứng nổi/nhấn kiểu nút 3D v�
 
 | # | Tab | Màu gradient |
 |---|-----|-------------|
-| 1 | 🎯 Dashboard động | `#22d3ee → #0e7490` (cyan) |
-| 2 | 📊 Tổng quan | `#60a5fa → #1d4ed8` (xanh dương) |
-| 3 | 👤 Theo GĐV | `#34d399 → #047857` (xanh lá) |
-| 4 | ⏱️ Tiến độ theo chặng | `#94a3b8 → #334155` (xám thép) |
-| 5 | 🛡️ Kiểm soát rủi ro | `#f87171 → #7f1d1d` (đỏ đậm) |
-| 6 | 📋 Báo cáo XO | `#c084fc → #6d28d9` (tím) |
-| 7 | 💡 Đề xuất cải tiến CLDV | `#fb7185 → #be123c` (hồng đỏ) |
-| 8 | 🔍 Tra cứu tiến trình | `#fbbf24 → #b45309` (vàng cam) |
+| 1 | 📊 Tổng quan | `#60a5fa → #1d4ed8` (xanh dương) |
+| 2 | 👤 Theo GĐV | `#34d399 → #047857` (xanh lá) |
+| 3 | ⏱️ Tiến độ & Hồ sơ tồn | `#94a3b8 → #334155` (xám thép) |
+| 4 | 🛡️ Kiểm soát rủi ro | `#f87171 → #7f1d1d` (đỏ đậm) |
+| 5 | 💡 Đề xuất cải tiến CLDV | `#fb7185 → #be123c` (hồng đỏ) |
+| — | 🔍 Tra cứu tiến trình | `#fbbf24 → #b45309` (vàng cam) — không có nút tab, màu ở `.dash-dd [data-d="search"]` |
+| — | 🧰 Tiện ích | `#818cf8 → #3730a3` (indigo) — không có nút tab, màu ở `.dash-dd [data-d="tienich"]` |
 | — | 🧰 Tiện ích | `#818cf8 → #3730a3` (indigo) — không có nút tab, màu này nay nằm ở `.dash-dd [data-d="tienich"]` (mục cuối droplist) |
 
 **Nền nội dung tab (`.tab-pane`)**: mỗi tab có nền gradient pastel dịu cùng tông màu nút tab (xanh dương / xanh lá / tím / cyan / hồng nhạt), bo góc 16px, viền trắng mờ.
@@ -380,7 +388,7 @@ Mỗi tab có màu gradient riêng, hiệu ứng nổi/nhấn kiểu nút 3D v�
 
 **Khoảng cách dọc (09/2026)**: đã thu hẹp để nhường không gian cho vùng dữ liệu — `.content` padding-top `24px → 10px` (tablet `8px`, mobile `6px`), `.tabs` margin-bottom `24px → 12px` (mobile `8px`).
 
-**Thanh lọc chung đã bị xoá (09/2026)** — 3 bộ lọc GĐV / Nghiệp vụ / Trạng thái cùng `getFiltered()`, `buildGdvFilter()` và toàn bộ CSS `.filter-bar` đã gỡ bỏ. `renderAll()` nay tính thẳng `computeStats(RAW)`; muốn lọc/cắt lát dữ liệu thì dùng tab **Dashboard động** (7 tiêu chí nhóm) hoặc tab **Tra cứu tiến trình**.
+**Thanh lọc chung đã bị xoá (09/2026)** — 3 bộ lọc GĐV / Nghiệp vụ / Trạng thái cùng `getFiltered()`, `buildGdvFilter()` và toàn bộ CSS `.filter-bar` đã gỡ bỏ. `renderAll()` nay tính thẳng `computeStats(RAW)`; muốn lọc/cắt lát dữ liệu thì dùng khối **Phân tích đa chiều** (7 tiêu chí nhóm, cuối tab Tổng quan) hoặc **Tra cứu tiến trình** (menu thả xuống).
 
 **Topbar rút gọn (11/2026)** — theo yêu cầu người dùng:
 - Tiêu đề: **"Báo cáo tuần - KV 013"** (11/2026, rút gọn từ "Báo cáo tuần - Phòng CH& Giám định KV Quảng Ninh"), đặt **cách logo đúng 12mm** (`.topbar-center{margin-left:12mm}`; ≤1150px còn 8mm, mobile 0). `.topbar` đổi `justify-content` thành `flex-start`.
@@ -444,7 +452,9 @@ Mỗi tab có màu gradient riêng, hiệu ứng nổi/nhấn kiểu nút 3D v�
 - `parseTon(v)` — parse số ngày tồn, trả về `null` nếu `n <= 0`
 - `parseMoney(v)` — parse số tiền, trả về `0` nếu không hợp lệ
 
-## Tab Báo cáo XO — Nội dung
+## Đặc tả 3 báo cáo gốc BC1 / BC2 / BC3 (nay đã gộp)
+
+> 11/2026: tab Báo cáo XO đã bỏ. **BC1 gộp với BC4 → `garageSection()`**, **BC2 + BC3 gộp với Top 50 đứng yên → `tonListSection()`**, cả hai nằm ở tab ⏱️ Tiến độ & Hồ sơ tồn. Phần dưới giữ lại vì là **đặc tả gốc của truy vấn và bộ cột** — khi sửa 2 hàm gộp phải bảo đảm vẫn đủ các cột và điều kiện lọc dưới đây.
 
 ### BC1 — Thống kê Doanh thu SC các Gara/Showroom (PS năm hiện tại)
 
