@@ -83,12 +83,14 @@ Cột quan trọng:
 | Đề xuất cải tiến CLDV | `tab-cldv` | Phân tích 3 trục: Chất lượng dịch vụ · Hiệu quả & Năng suất · Quan hệ khách hàng; hàm `renderCLDV(s)` |
 | Dashboard động | `tab-dashboard` | Dashboard đa chiều: **7 tiêu chí** chọn từ menu thả xuống của chính nút tab "🎯 Dashboard động" (tab không còn thanh "Xem theo" bên trong — xem mục riêng bên dưới) (Giám định viên / Địa bàn / Nghiệp vụ / Hãng xe / Gara-Showroom / Trạng thái hồ sơ / Số tiền bình quân/vụ) → 3 biểu đồ và bảng chi tiết tính lại theo tiêu chí nhóm đã chọn. **Không có hàng KPI cố định** — đã gỡ (09/2026) vì các số đó không đổi khi bấm chuyển tiêu chí và đã hiển thị ở tab Tổng quan; tab này chỉ chứa nội dung thực sự thay đổi theo lựa chọn. Hàm `renderDashboard(s)` (dùng `s.rows`), `setDashDim(dim)` (đổi tiêu chí, re-render chỉ tab này), `computeDashGroups(data,dim)` → `groupRowsByDim(data,dim)` → `dimKeyOf(r,dim)` + `computeGroupStat(gd)`. `computeGroupStat` dùng đúng công thức đã chuẩn hoá: `tyLeGQ = daGQ/tongCanGQ`, `tyLeTon = tongTon/(hsps/curMonth)`, cấp độ cảnh báo <80% / 80–130% / >130% — đã đối chiếu khớp 100% với `gdvStats` trong `computeStats()`. Bảng chi tiết do `dashDetailTable(groups)` sinh, **3 bộ cột khác nhau** (xem mục dưới) |
 | Tra cứu tiến trình | `tab-search` | Thứ tự ô: **Biển kiểm soát** (đầu tiên) → Số HSBT → Tên garage → GĐV thụ lý → Trạng thái hồ sơ. Tra cứu hồ sơ theo Biển kiểm soát/Số HSBT (khớp một phần, OR) kết hợp lọc **Tên garage (thường gọi)** (ô text + `datalist` gợi ý, khớp một phần không phân biệt hoa thường/dấu qua `normText`, fallback `(ĐKKD)` qua `searchGarageOf(r)`, AND), GĐV thụ lý (dropdown, AND) và **Trạng thái hồ sơ dạng dropdown nhiều checkbox** (`#search-trangthai.tt-multi`, mỗi trạng thái 1 ô kèm số HS, nút Chọn tất cả/Bỏ chọn; các trạng thái đã tích OR với nhau, AND với tiêu chí khác; không tích hoặc tích hết = không lọc; hàm `getCheckedTt()`, `updateTtLabel()`, `setAllTt(v)`, `toggleTtPanel(e)`, `closeTtPanel()` — đóng khi bấm ra ngoài/Esc/Tìm kiếm; danh sách build lại trong `buildSearchFilterOptions()` và giữ các ô đang tích) — mọi tiêu chí đều tuỳ chọn, chỉ cần 1 trong 5; bảng kết quả 18 cột (gồm GĐV thụ lý + Tên garage + 16 cột mốc thời gian/tiền/trạng thái); nút **📥 Tải Excel (.xlsx)** trên header kết quả gọi `exportSearchXlsx()` xuất đúng bộ cột của bảng từ `SEARCH_LAST` (kết quả tra cứu gần nhất) — ngày ghi số serial Excel `dd/mm/yyyy` (tự quy đổi theo ngày địa phương, tránh lệch múi giờ), tiền dạng số `#,##0`, có 2 dòng tiêu đề/điều kiện + AutoFilter, tên file `TraCuu_HSBT_yyyymmdd_HHmm.xlsx`; hàm `renderSearch()` (khởi tạo UI 1 lần, cờ `searchTabInit`) + `buildSearchFilterOptions()` (build lại cả 2 dropdown GĐV và Trạng thái hồ sơ mỗi lần renderAll, động theo giá trị thực tế có trong `RAW` — tức theo đúng dữ liệu Google Drive/Dulieu.xlsx đang tải, không hardcode danh sách; giữ lựa chọn hiện tại) + `doSearchHSBT()` (đọc `RAW` toàn bộ, không phụ thuộc filter bar) |
+| Tiến độ theo chặng | `tab-tiendo` | **Thêm 11/2026 (Đợt 1)** — đo chu kỳ giải quyết từ 18 mốc thời gian (trước đó các mốc này chỉ được *hiển thị* ở tab Tra cứu / thẻ hồ sơ Trợ lý GĐV, chưa bao giờ được đo). 3 khối: (1) **Thời gian trung bình từng chặng** — 12 chặng trong `CYCLE_LEGS`, mỗi chặng có TB/trung vị/p90/max + chip khâu phụ trách + thanh tỷ trọng thời gian; (2) **Hồ sơ tồn đang nghẽn ở bước nào** — nhóm HS tồn theo mốc quy trình sau cùng đã đi qua (`lastStage`), kèm cột *Khâu phải xử lý tiếp* lấy từ `STAGE_NEXT`; (3) **Top 50 hồ sơ đứng yên lâu nhất**. Hàm `renderStages(s)` dùng `s.cycle` do `computeCycleStats()` sinh |
+| Kiểm soát rủi ro | `tab-ruiro` | **Thêm 11/2026 (Đợt 1)** — 5 khối: (1) giảm trừ BT theo lý do, (2) giảm trừ theo GĐV (tỷ lệ phát hiện = HS có giảm trừ ÷ HS thụ lý), (3) tổng hợp **dấu hiệu cần rà soát**, (4) danh sách top 100 HS có dấu hiệu, (5) top 60 HS có giảm trừ theo số tiền. Hàm `renderRisk(s)` dùng `s.risk` do `computeRiskStats()` sinh. ⚠️ Khối 3–4 chỉ nêu **dấu hiệu cần rà soát**, không kết luận trục lợi — đã ghi rõ trong `.note-box` đầu tab, **không được bỏ dòng này** |
 | Tiện ích | `tab-tienich` | **Không có nút tab riêng** (11/2026) — mở từ **dòng cuối droplist** của nút tab "🎯 Dashboard động" (`openTienichTab()`). Bảng liên kết tới các công cụ web hỗ trợ giám định (ghép ảnh giám định xe, ghép ảnh giấy tờ xe GTX, tạo biểu mẫu giám định, tra giá phụ tùng). Nội dung **tĩnh, không phụ thuộc dữ liệu** — `renderTienich()` dựng 1 lần (cờ `el.dataset.ready`) từ mảng `UTIL_LINKS` (`ico`/`name`/`desc`/`url`/`note`); thêm tiện ích mới chỉ cần thêm 1 phần tử vào mảng này. Mỗi dòng có liên kết mở `target="_blank" rel="noopener noreferrer"` + nút 📋 `utilCopy(url,btn)` (Clipboard API, có nhánh dự phòng `execCommand` cho file://). Bảng kẻ ô đầy đủ (`.util-tbl`) nên phải ghi đè CSS chung `th{white-space:nowrap}` và `tr:last-child td{border-bottom:none}`; `min-width:640px` + `overflow-x:auto` ở khung bọc để điện thoại cuộn ngang thay vì vỡ layout |
 
 > Tab "Phân loại tồn" (`tab-aging`) đã bị xóa (06/2026) — nội dung phân phối thời gian tồn đã được tích hợp vào tab Đề xuất cải tiến CLDV (Trục 1). `warnRows` trong `computeStats()` vẫn giữ nguyên.
 > Tab "Cảnh báo" (`tab-warnings`) đã bị xóa (06/2026) — các bảng HS tồn >90 ngày và GĐV nguy hiểm đã có trong tab Báo cáo XO và tab Tổng quan.
 > Khối "Đánh giá Tổng quan" (`generateAnalysis(s)`) đã bị xóa hoàn toàn (09/2026) theo yêu cầu — tab Tổng quan nay kết thúc ở khối Infographic theo địa bàn. `renderInfographic()` không còn nhận tham số `s`.
-> Tab "Tổng hợp cảnh báo" (`tab-infographic`) đã bị xóa (09/2026) — báo cáo "BÁO CÁO TIẾN ĐỘ GIẢI QUYẾT HỒ SƠ TỒN ĐỌNG PTI SOS" (Infographic theo địa bàn) đã chuyển sang cuối tab Tổng quan. **Thứ tự nút tab hiện tại (11/2026 — 6 nút)**: **Dashboard động** → Tổng quan → Theo GĐV → Báo cáo XO → Đề xuất cải tiến CLDV → Tra cứu tiến trình. Tab **Tiện ích** (thêm 11/2026) **không có nút tab**: vào bằng dòng cuối droplist của nút "🎯 Dashboard động"; `.tabs .tab:nth-child(7)` vì vậy không còn tác dụng. Dashboard động là tab **mặc định mở khi vào trang** (`class="tab active"` + `#tab-dashboard` không có `display:none`).
+> Tab "Tổng hợp cảnh báo" (`tab-infographic`) đã bị xóa (09/2026) — báo cáo "BÁO CÁO TIẾN ĐỘ GIẢI QUYẾT HỒ SƠ TỒN ĐỌNG PTI SOS" (Infographic theo địa bàn) đã chuyển sang cuối tab Tổng quan. **Thứ tự nút tab hiện tại (11/2026 — 8 nút)**: **Dashboard động** → Tổng quan → Theo GĐV → **Tiến độ theo chặng** → **Kiểm soát rủi ro** → Báo cáo XO → Đề xuất cải tiến CLDV → Tra cứu tiến trình. Hai tab Đợt 1 chèn ở vị trí 4–5 nên Báo cáo XO / CLDV / Tra cứu dịch xuống `nth-child(6)/(7)/(8)` — màu CSS đã gán lại để mỗi tab **giữ đúng màu cũ**. Tab **Tiện ích** (thêm 11/2026) **không có nút tab**: vào bằng dòng cuối droplist của nút "🎯 Dashboard động"; `.tabs .tab:nth-child(9)` không tồn tại. Dashboard động là tab **mặc định mở khi vào trang** (`class="tab active"` + `#tab-dashboard` không có `display:none`).
 > ⚠️ Khi đổi thứ tự tab phải sửa đồng bộ **4 chỗ** (nhóm nút tab nay nằm trong `.topbar`, id `#main-tabs`): (1) thứ tự `<button class="tab">`, (2) thứ tự `<div id="tab-...">` kèm `style="display:none"` (đúng 1 pane hiện, 1 nút `active`, và 2 cái phải cùng trỏ 1 tab), (3) CSS `.tabs .tab:nth-child(n)` — đánh số theo **vị trí**, không theo tab, nên phải gán lại màu để mỗi tab giữ đúng màu cũ, (4) mảng trong `switchTab()`.
 
 ### Tiêu chí nhóm của tab Dashboard động
@@ -143,6 +145,48 @@ Cột quan trọng:
 - **Co dòng tự động**: `fitDashRows(card)` chọn mức thấp nhất trong `DASH_DENSE` = `dash-dense-1/2/3` (giảm dần padding → font → line-height + badge) sao cho khung hiện được `target = min(số dòng, DASH_MIN_ROWS=10)`. Bảng ít mục cũng được co để **hiện đủ không phải cuộn**. `dashVisibleRows()` trừ chiều cao `thead`/`tfoot` sticky và 4px biên khi tính.
 - ⚠️ `syncDashTableHeight()` phải chạy **lại sau `document.fonts.ready`** (cờ `_dashFontsBound`): lần render đầu webfont Be Vietnam Pro chưa tải xong, `tr.offsetHeight` đo hụt → chọn nhầm mức co quá nhẹ (đo thật: 11,26 dòng lúc chưa có font nhưng chỉ hiện 9 dòng sau khi font vào).
 - Với `mucTien` (`moneyMode` trong `renderDashboard`), **cả 2 chart đầu đổi**: chart 1 = **Tổng số vụ theo mức tiền** (thay biểu đồ bucket ngày), chart 2 = **Số tiền bình quân/vụ (triệu đồng)**. Không gộp số vụ và số tiền vào cùng một chart — hai đại lượng lệch bậc độ lớn sẽ làm cột bẹp. Chart donut thứ 3 (cơ cấu tiền ước/duyệt BT) giữ nguyên.
+
+## Engine Đợt 1 — đo chu kỳ theo chặng & kiểm soát rủi ro (11/2026)
+
+Hai engine chạy trong `computeStats()` và trả về qua `s.cycle` / `s.risk` (chỉ **thêm trường**, không sửa logic cũ).
+Quy ước tồn dùng chung `parseTon` / `isResolved` — **không định nghĩa lại**.
+
+### `computeCycleStats(data)` → `s.cycle`
+
+| Hằng / hàm | Vai trò |
+|---|---|
+| `STAGE_FLOW` | 11 mốc theo đúng trình tự quy trình, dùng cho `lastStage(r)` (bước dừng cuối). **Không có 3 mốc CNG** — dữ liệu thật chỉ 1–2 HS (0,1%) nên không đo được |
+| `STAGE_NEXT` | Bản đồ *bước dừng → việc phải làm tiếp* + class chip khâu phụ trách |
+| `CYCLE_LEGS` | 12 chặng được đo; mỗi chặng có `own` (khâu phụ trách), `cls` (màu chip), `short` (nhãn biểu đồ), `sla` (mốc đọc nhanh **do báo cáo đặt**, không phải thời hạn quy định) |
+| `dayGap(a,b)` · `quantile(sorted,q)` · `statsOf(arr)` | Số ngày giữa 2 mốc · phân vị nội suy · `{n,avg,med,p90,max}` |
+| `dataAsOf(data)` | Mốc "dữ liệu đến ngày" = mốc thời gian lớn nhất trong toàn bộ dữ liệu. **Dùng thay `Date.now()`** khi tính số ngày đứng yên — mở lại file cũ mà lấy hôm nay thì số ngày đứng yên bị phóng đại |
+
+- ⚠️ **Giá trị âm bị loại khỏi trung bình** (`neg`): rất nhiều HS có *Ngày giám định chi tiết* sớm hơn *Ngày mở HSBT* (giám định hiện trường trước khi mở hồ sơ — đúng thực tế nghiệp vụ, không phải lỗi dữ liệu). Dữ liệu 10/2026: chặng `Mở HSBT → Giám định chi tiết` có n=1.137 nhưng neg=952, nên cột "HS đo được" hiển thị thêm dòng xám `−952 ngược mốc`. Đừng "sửa" bằng cách lấy trị tuyệt đối.
+- `bott` = các chặng xếp theo thời gian TB giảm dần, **đã bỏ chặng do khách hàng** (`own-kh`) để KPI "Nghẽn số 1/2" chỉ nói về phần phòng quản được.
+- Tổng số HS trong `flow` **luôn bằng** `tonTotal` (đã kiểm: 166 = 166 với dữ liệu 10/2026) — mỗi HS tồn chỉ thuộc đúng 1 bước dừng.
+- `byGdv[].tags` tự gắn nhận định: `w1.med ≥ 10` → "Chậm lấy/trình báo giá"; `w2.med ≥ 15` → "Chậm đốc gara quyết toán"; không dính 2 cái trên mà `cyc.med > 1,5 × trung vị toàn phòng` → "Chu kỳ dài hơn mức chung".
+
+### `computeRiskStats(data)` → `s.risk`
+
+- Giảm trừ: đọc `Tiền giảm trừ BT` + `Lý do giảm trừ BT` (ô rỗng/`-` gom về hằng `RISK_NO_REASON`), cộng thêm `Tiền chia sẻ rủi ro` thành KPI "Tổng tiền tiết kiệm".
+- Dấu hiệu rà soát (`flags`, mức `hi`/`md`/`lo`, điểm 3/2/1): TN trước ngày hiệu lực · TN trong 7 ngày đầu hiệu lực · TN trong 8–15 ngày đầu · thanh toán phí **sau** ngày tai nạn · thông báo muộn >5 ngày / 2–5 ngày · **xe có ≥4 vụ trong kỳ**.
+- ⚠️ Ngưỡng xe nhiều vụ để ở **≥4** chứ không phải ≥3: với 2.200 HS/10 tháng thì ≥3 vụ trúng 334 HS (phần lớn là xe của khách tổ chức/đội xe — VNPOST, các mã `XO_*`), quá rộng để gọi là dấu hiệu; ≥4 vụ còn 97 HS / 23 xe.
+- ⚠️ Tab này **không kết luận trục lợi**. `.note-box` đầu tab nêu rõ đây chỉ là dấu hiệu cần đối chiếu quy tắc, công văn và hồ sơ gốc — giữ nguyên khi chỉnh sửa.
+
+### Thẻ điểm chu kỳ theo GĐV — `gdvScorecard(s)`
+
+Khối phụ **nằm trong tab Theo GĐV** (chèn giữa bảng tồn và hàng chart đầu), không phải tab riêng. Thêm 2 chart `chart-gdv-cycle` + `chart-gdv-leg` vẽ trong `setTimeout` của `renderGdv`. Dùng **trung vị** thay trung bình để 1–2 hồ sơ cá biệt không làm lệch cả GĐV; cột "HS đo" nhỏ nghĩa là GĐV ít hồ sơ đã duyệt BT → **không xếp hạng** khi cột này quá ít.
+
+### CSS kèm theo
+
+`.own-badge` (+ `.own-gdv/gara/nv/kh/tc/sys`) · `.flag-chip` (+ `.flag-hi/md/lo`) · `.legbar>i` · `.note-box` (+ `.info`) · phần nới ô cho `#tab-tiendo`/`#tab-ruiro table.gdv`. Hai tab dùng lại `.gdv-report-wrap` / `table.gdv` / `.chart-card` của các tab cũ nên không phát sinh hệ thống bảng mới.
+
+### Đo thật (dữ liệu 10/2026 — 2.200 HS, as-of 29/10/2026)
+
+Chu kỳ Mở HSBT → Duyệt BT: TB 30,4 · trung vị 22 · p90 63 ngày. Hai chặng nghẽn chiếm **79,1%** tổng thời gian chờ: *Giám định chi tiết → Trình duyệt giá* 13,6 ngày và *Bảo lãnh → Trình ĐNTT* 13,5 ngày; 7 chặng check/validate nội bộ chỉ 0,2–0,9 ngày. Tồn 166 HS: 72 HS dừng ở Giám định chi tiết, 71 HS ở Bảo lãnh. Giảm trừ 302 HS / 1,104 tỷ (193 HS "không thông báo ngay cho PTI"); chia sẻ rủi ro 14 HS / 261,7 tr. Dấu hiệu rà soát: 296 HS, trong đó 80 HS mức cao. Kiểm tra bề ngang: `overflowX = 0` ở 1878 / 1478 / 1258 px và ở 390px (bảng cuộn ngang trong `.gdv-table-outer`).
+
+> Dữ liệu nguồn 10/2026 có **4 dòng tiêu đề trước hàng header** (header nằm ở dòng 6) — khi đọc file bằng script phải dò hàng chứa `Số HSBT` thay vì giả định `header=0`.
+> Cột `Tên garage (thường gọi)` có **69 HS ghi "TNDS"** và cột `Trạng thái hồ sơ` có **22 HS ghi "TNDS"** — đây là cách nhập của hệ thống nguồn cho hồ sơ TNDS, không phải lỗi hiển thị của dashboard.
 
 ## Trợ lý ảo GĐV (popup "💬 Trợ lý GĐV")
 
@@ -259,9 +303,11 @@ Mỗi tab có màu gradient riêng, hiệu ứng nổi/nhấn kiểu nút 3D v�
 | 1 | 🎯 Dashboard động | `#22d3ee → #0e7490` (cyan) |
 | 2 | 📊 Tổng quan | `#60a5fa → #1d4ed8` (xanh dương) |
 | 3 | 👤 Theo GĐV | `#34d399 → #047857` (xanh lá) |
-| 4 | 📋 Báo cáo XO | `#c084fc → #6d28d9` (tím) |
-| 5 | 💡 Đề xuất cải tiến CLDV | `#fb7185 → #be123c` (hồng đỏ) |
-| 6 | 🔍 Tra cứu tiến trình | `#fbbf24 → #b45309` (vàng cam) |
+| 4 | ⏱️ Tiến độ theo chặng | `#94a3b8 → #334155` (xám thép) |
+| 5 | 🛡️ Kiểm soát rủi ro | `#f87171 → #7f1d1d` (đỏ đậm) |
+| 6 | 📋 Báo cáo XO | `#c084fc → #6d28d9` (tím) |
+| 7 | 💡 Đề xuất cải tiến CLDV | `#fb7185 → #be123c` (hồng đỏ) |
+| 8 | 🔍 Tra cứu tiến trình | `#fbbf24 → #b45309` (vàng cam) |
 | — | 🧰 Tiện ích | `#818cf8 → #3730a3` (indigo) — không có nút tab, màu này nay nằm ở `.dash-dd [data-d="tienich"]` (mục cuối droplist) |
 
 **Nền nội dung tab (`.tab-pane`)**: mỗi tab có nền gradient pastel dịu cùng tông màu nút tab (xanh dương / xanh lá / tím / cyan / hồng nhạt), bo góc 16px, viền trắng mờ.
