@@ -156,8 +156,9 @@ Quy ước tồn dùng chung `parseTon` / `isResolved` — **không định ngh�
 | Hằng / hàm | Vai trò |
 |---|---|
 | `STAGE_FLOW` | 11 mốc theo đúng trình tự quy trình, dùng cho `lastStage(r)` (bước dừng cuối). **Không có 3 mốc CNG** — dữ liệu thật chỉ 1–2 HS (0,1%) nên không đo được |
-| `STAGE_NEXT` | Bản đồ *bước dừng → việc phải làm tiếp* + class chip khâu phụ trách |
+| `STAGE_NEXT` | Bản đồ *bước dừng → việc phải làm tiếp* + class chip khâu phụ trách. Dùng **Make / Check / Validate** (xem mục vai trò bên dưới) |
 | `CYCLE_LEGS` | 12 chặng được đo; mỗi chặng có `own` (khâu phụ trách), `cls` (màu chip), `short` (nhãn biểu đồ), `sla` (mốc đọc nhanh **do báo cáo đặt**, không phải thời hạn quy định) |
+| `STAT_TIP` · `statLegend()` | Chú thích TB / Trung vị / p90 / Tối đa — gắn `title=` trên `<th>` **và** in thành dòng dưới bảng (tooltip không thấy được trên điện thoại và khi in). Dùng ở cả 3 bảng có cột thời gian: bảng chặng, thẻ điểm GĐV, BC4 gara |
 | `dayGap(a,b)` · `quantile(sorted,q)` · `statsOf(arr)` | Số ngày giữa 2 mốc · phân vị nội suy · `{n,avg,med,p90,max}` |
 | `dataAsOf(data)` | Mốc "dữ liệu đến ngày" = mốc thời gian lớn nhất trong toàn bộ dữ liệu. **Dùng thay `Date.now()`** khi tính số ngày đứng yên — mở lại file cũ mà lấy hôm nay thì số ngày đứng yên bị phóng đại |
 
@@ -165,6 +166,30 @@ Quy ước tồn dùng chung `parseTon` / `isResolved` — **không định ngh�
 - `bott` = các chặng xếp theo thời gian TB giảm dần, **đã bỏ chặng do khách hàng** (`own-kh`) để KPI "Nghẽn số 1/2" chỉ nói về phần phòng quản được.
 - Tổng số HS trong `flow` **luôn bằng** `tonTotal` (đã kiểm: 166 = 166 với dữ liệu 10/2026) — mỗi HS tồn chỉ thuộc đúng 1 bước dừng.
 - `byGdv[].tags` tự gắn nhận định: `w1.med ≥ 10` → "Chậm lấy/trình báo giá"; `w2.med ≥ 15` → "Chậm đốc gara quyết toán"; không dính 2 cái trên mà `cyc.med > 1,5 × trung vị toàn phòng` → "Chu kỳ dài hơn mức chung".
+
+#### Khâu phụ trách — Make / Check / Validate (11/2026, người dùng chốt)
+
+Cột *Khâu phụ trách* (bảng 1) và *Khâu phải xử lý tiếp* (bảng 2) ghi theo **thẩm quyền trong quy trình PTI**, **không còn** "Phòng NV" / "Tài chính" / "GĐV" / "Gara":
+
+| Chặng | Khâu phụ trách |
+|---|---|
+| Tai nạn → Thông báo TN | Khách hàng |
+| Thông báo TN → Mở HSBT | Tiếp nhận |
+| Mở HSBT → Giám định chi tiết | **Make** |
+| Giám định chi tiết → Trình duyệt giá | **Make** |
+| Trình duyệt giá → Check duyệt giá | **Make → Check** |
+| Check duyệt giá → Validate duyệt giá | **Check → Validate** |
+| Validate duyệt giá → Bảo lãnh | **Validate** |
+| Bảo lãnh → Trình ĐNTT | **Make** |
+| Trình ĐNTT → Check ĐNTT | **Make → Check** |
+| Check ĐNTT → Validate ĐNTT | **Check → Validate** |
+| Validate ĐNTT → Duyệt bồi thường | **Validate** |
+| Duyệt bồi thường → Trả tiền GR | **Hệ thống tự động** |
+
+- Dạng `A → B` nghĩa là **khoảng chờ bàn giao**: hồ sơ đã trình xong, đang chờ vai trò sau xử lý.
+- Hai chặng đầu (Khách hàng, Tiếp nhận) nằm **trước** quy trình Make/Check/Validate nên giữ tên riêng.
+- CSS chip: `.own-make` (xanh lá) · `.own-check` (xanh dương) · `.own-val` (tím) · `.own-m2c` / `.own-c2v` (gradient chuyển màu giữa 2 vai trò) · `.own-sys` (xám) · `.own-kh` (tím nhạt). Các lớp cũ `.own-gdv/.own-gara/.own-nv/.own-tc` **vẫn giữ trong CSS và trong `OWN_FILL`** để không vỡ màu nếu còn chỗ nào tham chiếu — đừng xoá khi dọn code mà chưa grep.
+- `OWN_FILL` quyết định màu cột của biểu đồ "Thời gian trung bình từng chặng" — thêm vai trò mới phải thêm 1 dòng vào đây, nếu không cột ra màu xám mặc định.
 
 ### `computeRiskStats(data)` → `s.risk`
 

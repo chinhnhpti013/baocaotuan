@@ -674,6 +674,12 @@ table.gdv td.hl-green{color:#059669}
 .own-kh{background:#ede9fe;color:#5b21b6}
 .own-tc{background:#cffafe;color:#155e75}
 .own-sys{background:#e2e8f0;color:#334155}
+/* Vai trò theo thẩm quyền trong quy trình PTI (11/2026 — thay cho "Phòng NV" / "Tài chính") */
+.own-make{background:#d1fae5;color:#065f46}
+.own-check{background:#dbeafe;color:#1e40af}
+.own-val{background:#ede9fe;color:#5b21b6}
+.own-m2c{background:linear-gradient(90deg,#d1fae5 0%,#dbeafe 100%);color:#1e3a5f}
+.own-c2v{background:linear-gradient(90deg,#dbeafe 0%,#ede9fe 100%);color:#3730a3}
 .flag-chip{display:inline-block;padding:1px 6px;border-radius:5px;font-size:.62rem;font-weight:700;
   margin:1px 3px 1px 0;white-space:nowrap}
 .flag-hi{background:#fee2e2;color:#991b1b}
@@ -3194,35 +3200,35 @@ const STAGE_FLOW=[
 
 // Việc cần làm tiếp của hồ sơ đang dừng ở mỗi bước — cột "Khâu phải xử lý tiếp".
 const STAGE_NEXT={
-  '(Chưa có mốc)':       {txt:'GĐV: cập nhật mốc quy trình vào hệ thống', own:'own-gdv'},
-  'Mở HSBT':             {txt:'GĐV: giám định chi tiết',                  own:'own-gdv'},
-  'Giám định chi tiết':  {txt:'GĐV + Gara: lập & trình duyệt giá',        own:'own-gara'},
-  'Trình duyệt giá':     {txt:'Phòng NV: check duyệt giá',                own:'own-nv'},
-  'Check duyệt giá':     {txt:'Phòng NV: validate duyệt giá',             own:'own-nv'},
-  'Validate duyệt giá':  {txt:'GĐV: phát hành bảo lãnh',                  own:'own-gdv'},
-  'Bảo lãnh':            {txt:'Gara: hoàn thiện hồ sơ quyết toán',        own:'own-gara'},
-  'Trình ĐNTT':          {txt:'Phòng NV: check ĐNTT',                     own:'own-nv'},
-  'Check ĐNTT':          {txt:'Phòng NV: validate ĐNTT',                  own:'own-nv'},
-  'Validate ĐNTT':       {txt:'Hệ thống: duyệt bồi thường',               own:'own-sys'},
-  'Duyệt bồi thường':    {txt:'Tài chính: chi trả',                       own:'own-tc'},
-  'Trả tiền GR':         {txt:'Rà soát: đã chi trả mà hồ sơ chưa đóng',   own:'own-sys'}
+  '(Chưa có mốc)':       {txt:'Make: cập nhật mốc quy trình vào hệ thống',  own:'own-make'},
+  'Mở HSBT':             {txt:'Make: giám định chi tiết',                   own:'own-make'},
+  'Giám định chi tiết':  {txt:'Make: lập & trình duyệt giá (đốc gara báo giá)', own:'own-make'},
+  'Trình duyệt giá':     {txt:'Check: check duyệt giá',                     own:'own-check'},
+  'Check duyệt giá':     {txt:'Validate: validate duyệt giá',               own:'own-val'},
+  'Validate duyệt giá':  {txt:'Validate: phát hành bảo lãnh',               own:'own-val'},
+  'Bảo lãnh':            {txt:'Make: đốc gara quyết toán & trình ĐNTT',     own:'own-make'},
+  'Trình ĐNTT':          {txt:'Check: check ĐNTT',                          own:'own-check'},
+  'Check ĐNTT':          {txt:'Validate: validate ĐNTT',                    own:'own-val'},
+  'Validate ĐNTT':       {txt:'Validate: duyệt bồi thường',                 own:'own-val'},
+  'Duyệt bồi thường':    {txt:'Hệ thống tự động: chi trả',                  own:'own-sys'},
+  'Trả tiền GR':         {txt:'Rà soát: đã chi trả mà hồ sơ chưa đóng',     own:'own-sys'}
 };
 
 /* Các chặng được đo. own = khâu chịu trách nhiệm chính của khoảng chờ đó.
    sla = mốc tham chiếu nội bộ để tô màu (ngày); chỉ là ngưỡng đọc nhanh, không phải quy định. */
 const CYCLE_LEGS=[
   {a:'Ngày tai nạn',            b:'Ngày thông báo tai nạn', lab:'Tai nạn → Thông báo TN',        short:'TN→TB',        own:'Khách hàng',  cls:'own-kh',   sla:1},
-  {a:'Ngày thông báo tai nạn',  b:'Ngày mở HSBT',           lab:'Thông báo TN → Mở HSBT',        short:'TB→Mở HS',     own:'Call/GĐV',    cls:'own-gdv',  sla:3},
-  {a:'Ngày mở HSBT',            b:'Ngày giám định chi tiết',lab:'Mở HSBT → Giám định chi tiết',  short:'Mở HS→GĐ',     own:'GĐV',         cls:'own-gdv',  sla:3},
-  {a:'Ngày giám định chi tiết', b:'Ngày trình duyệt giá',   lab:'Giám định chi tiết → Trình duyệt giá', short:'GĐ→Trình DG', own:'GĐV + Gara', cls:'own-gara', sla:7},
-  {a:'Ngày trình duyệt giá',    b:'Ngày check duyệt giá',   lab:'Trình duyệt giá → Check duyệt giá',    short:'Trình→Check DG', own:'Phòng NV', cls:'own-nv', sla:2},
-  {a:'Ngày check duyệt giá',    b:'Ngày validate duyệt giá',lab:'Check duyệt giá → Validate duyệt giá', short:'Check→Val DG',   own:'Phòng NV', cls:'own-nv', sla:2},
-  {a:'Ngày validate duyệt giá', b:'Ngày bảo lãnh',          lab:'Validate duyệt giá → Bảo lãnh', short:'Val DG→BL',    own:'GĐV',         cls:'own-gdv',  sla:2},
-  {a:'Ngày bảo lãnh',           b:'Ngày trình ĐNTT',        lab:'Bảo lãnh → Trình ĐNTT',         short:'BL→Trình ĐNTT',own:'Gara',        cls:'own-gara', sla:10},
-  {a:'Ngày trình ĐNTT',         b:'Ngày check ĐNTT',        lab:'Trình ĐNTT → Check ĐNTT',       short:'Trình→Check ĐN',own:'Phòng NV',   cls:'own-nv',   sla:2},
-  {a:'Ngày check ĐNTT',         b:'Ngày validate ĐNTT',     lab:'Check ĐNTT → Validate ĐNTT',    short:'Check→Val ĐN', own:'Phòng NV',    cls:'own-nv',   sla:2},
-  {a:'Ngày validate ĐNTT',      b:'Ngày duyệt bồi thường',  lab:'Validate ĐNTT → Duyệt bồi thường', short:'Val ĐN→Duyệt', own:'Hệ thống', cls:'own-sys',  sla:1},
-  {a:'Ngày duyệt bồi thường',   b:'Ngày trả tiền GR',       lab:'Duyệt bồi thường → Trả tiền GR',short:'Duyệt→Trả GR', own:'Tài chính',   cls:'own-tc',   sla:3}
+  {a:'Ngày thông báo tai nạn',  b:'Ngày mở HSBT',           lab:'Thông báo TN → Mở HSBT',        short:'TB→Mở HS',     own:'Tiếp nhận',   cls:'own-sys',  sla:3},
+  {a:'Ngày mở HSBT',            b:'Ngày giám định chi tiết',lab:'Mở HSBT → Giám định chi tiết',  short:'Mở HS→GĐ',     own:'Make',        cls:'own-make', sla:3},
+  {a:'Ngày giám định chi tiết', b:'Ngày trình duyệt giá',   lab:'Giám định chi tiết → Trình duyệt giá', short:'GĐ→Trình DG', own:'Make',       cls:'own-make', sla:7},
+  {a:'Ngày trình duyệt giá',    b:'Ngày check duyệt giá',   lab:'Trình duyệt giá → Check duyệt giá',    short:'Trình→Check DG', own:'Make → Check', cls:'own-m2c', sla:2},
+  {a:'Ngày check duyệt giá',    b:'Ngày validate duyệt giá',lab:'Check duyệt giá → Validate duyệt giá', short:'Check→Val DG',   own:'Check → Validate', cls:'own-c2v', sla:2},
+  {a:'Ngày validate duyệt giá', b:'Ngày bảo lãnh',          lab:'Validate duyệt giá → Bảo lãnh', short:'Val DG→BL',    own:'Validate',    cls:'own-val',  sla:2},
+  {a:'Ngày bảo lãnh',           b:'Ngày trình ĐNTT',        lab:'Bảo lãnh → Trình ĐNTT',         short:'BL→Trình ĐNTT',own:'Make',        cls:'own-make', sla:10},
+  {a:'Ngày trình ĐNTT',         b:'Ngày check ĐNTT',        lab:'Trình ĐNTT → Check ĐNTT',       short:'Trình→Check ĐN',own:'Make → Check',cls:'own-m2c', sla:2},
+  {a:'Ngày check ĐNTT',         b:'Ngày validate ĐNTT',     lab:'Check ĐNTT → Validate ĐNTT',    short:'Check→Val ĐN', own:'Check → Validate',cls:'own-c2v',sla:2},
+  {a:'Ngày validate ĐNTT',      b:'Ngày duyệt bồi thường',  lab:'Validate ĐNTT → Duyệt bồi thường', short:'Val ĐN→Duyệt', own:'Validate', cls:'own-val',  sla:1},
+  {a:'Ngày duyệt bồi thường',   b:'Ngày trả tiền GR',       lab:'Duyệt bồi thường → Trả tiền GR',short:'Duyệt→Trả GR', own:'Hệ thống tự động', cls:'own-sys', sla:3}
 ];
 
 // Số ngày giữa 2 mốc; null nếu thiếu mốc. parseDate đã bỏ phần giờ nên đơn vị là ngày tròn.
@@ -3483,14 +3489,14 @@ function gdvScorecard(s){
             '<th rowspan="2" class="lv2" style="min-width:210px;text-align:left">Nhận định nghẽn</th>'+
           '</tr>'+
           '<tr>'+
-            '<th class="lv3" style="width:70px">HS đo</th>'+
-            '<th class="lv3" style="width:80px">Trung vị</th>'+
-            '<th class="lv3" style="width:60px">p90</th>'+
-            '<th class="lv3" style="width:60px">Max</th>'+
-            '<th class="lv3" style="width:80px">Trung vị</th>'+
-            '<th class="lv3" style="width:60px">p90</th>'+
-            '<th class="lv3" style="width:80px">Trung vị</th>'+
-            '<th class="lv3" style="width:60px">p90</th>'+
+            '<th class="lv3" style="width:70px" title="'+STAT_TIP.n+'">HS đo</th>'+
+            '<th class="lv3" style="width:80px" title="'+STAT_TIP.tv+'">Trung vị</th>'+
+            '<th class="lv3" style="width:60px" title="'+STAT_TIP.p90+'">p90</th>'+
+            '<th class="lv3" style="width:60px" title="'+STAT_TIP.max+'">Max</th>'+
+            '<th class="lv3" style="width:80px" title="'+STAT_TIP.tv+'">Trung vị</th>'+
+            '<th class="lv3" style="width:60px" title="'+STAT_TIP.p90+'">p90</th>'+
+            '<th class="lv3" style="width:80px" title="'+STAT_TIP.tv+'">Trung vị</th>'+
+            '<th class="lv3" style="width:60px" title="'+STAT_TIP.p90+'">p90</th>'+
             '<th class="lv3" style="width:70px">Đang tồn</th>'+
             '<th class="lv3" style="width:90px">Đứng yên<br/>&gt;14 ngày</th>'+
             '<th class="lv3" style="width:80px">Đứng yên<br/>max</th>'+
@@ -3518,6 +3524,7 @@ function gdvScorecard(s){
       '"Đứng yên" = số ngày kể từ mốc quy trình sau cùng của hồ sơ. '+
       'Chu kỳ chỉ đo trên hồ sơ đã có Ngày duyệt bồi thường, nên GĐV có ít hồ sơ hoàn tất thì cột "HS đo" nhỏ — '+
       'đừng xếp hạng khi "HS đo" quá ít. Chi tiết từng chặng xem tab <b>⏱️ Tiến độ theo chặng</b>.'+
+      statLegend()+
     '</div>'+
   '</div>'+
   '<div class="chart-row">'+
@@ -3529,9 +3536,31 @@ function gdvScorecard(s){
 }
 
 /* ═══ TAB TIẾN ĐỘ THEO CHẶNG (báo cáo 1 + 2) ═════════════════════════════════ */
-const OWN_FILL={'own-gdv':'#10b981','own-gara':'#f59e0b','own-nv':'#3b82f6',
-                'own-kh':'#8b5cf6','own-tc':'#06b6d4','own-sys':'#64748b'};
+const OWN_FILL={'own-make':'#10b981','own-check':'#3b82f6','own-val':'#8b5cf6',
+                'own-m2c':'#22c55e','own-c2v':'#6366f1','own-kh':'#a855f7','own-sys':'#64748b',
+                // 3 lớp cũ giữ lại để bảng/biểu đồ không mất màu nếu còn chỗ nào dùng
+                'own-gdv':'#10b981','own-gara':'#f59e0b','own-tc':'#06b6d4','own-nv':'#3b82f6'};
 function ownChip(txt,cls){return'<span class="own-badge '+cls+'">'+txt+'</span>'}
+
+/* Chú thích 4 cột thống kê thời gian — dùng chung cho bảng chặng, thẻ điểm GĐV và BC4 gara.
+   Vừa gắn title= trên <th> (hover) vừa in thành dòng dưới bảng, vì tooltip không thấy được
+   trên điện thoại và khi in ra giấy. */
+const STAT_TIP={
+  tb:'Trung bình = tổng số ngày ÷ số hồ sơ. Bị kéo lệch bởi vài hồ sơ kẹt rất lâu, nên luôn đọc kèm Trung vị.',
+  tv:'Trung vị = giá trị đứng giữa khi xếp từ nhanh đến chậm: 50% hồ sơ nhanh hơn, 50% chậm hơn. Đây là mức BÌNH THƯỜNG, dùng để so sánh giữa người với người vì không bị hồ sơ cá biệt bẻ cong.',
+  p90:'p90 = 90% hồ sơ xong trong vòng ngần này ngày, 10% chậm nhất vượt qua. Đo phần ĐUÔI CHẬM — dùng để đặt cam kết dịch vụ và tìm chỗ cần cải thiện.',
+  max:'Tối đa = hồ sơ chậm nhất, chỉ 1 trường hợp. Dùng để truy một hồ sơ cụ thể, KHÔNG dùng để chấm điểm ai.',
+  n:'Số hồ sơ có đủ cả 2 mốc ngày nên đo được. Nhóm có ít hồ sơ thì p90 và Tối đa gần như trùng nhau và không đáng tin.'
+};
+function statLegend(){
+  return'<div style="margin-top:6px;padding-top:7px;border-top:1px dashed #cbd5e1">'+
+    '<b>Cách đọc các cột thời gian</b> (đơn vị: <b>ngày</b>) &nbsp;·&nbsp; '+
+    '<b>TB</b> trung bình, bị kéo lệch bởi hồ sơ kẹt lâu &nbsp;·&nbsp; '+
+    '<b>Trung vị</b> mức bình thường — một nửa số hồ sơ nhanh hơn mức này &nbsp;·&nbsp; '+
+    '<b>p90</b> cứ 10 hồ sơ thì 1 hồ sơ chậm hơn mức này, dùng để đặt cam kết &nbsp;·&nbsp; '+
+    '<b>Tối đa</b> hồ sơ chậm nhất, chỉ 1 ca cá biệt.'+
+  '</div>';
+}
 function cutTxt(v,n){const t=String(v||'');return t.length>n?t.substring(0,n)+'…':t}
 
 function renderStages(s){
@@ -3632,12 +3661,12 @@ function renderStages(s){
         '<thead><tr>'+
           '<th style="width:40px">Stt</th>'+
           '<th class="lv2" style="min-width:230px;text-align:left">Chặng (giữa 2 mốc quy trình)</th>'+
-          '<th class="lv2" style="width:110px">Khâu phụ trách</th>'+
-          '<th class="lv2" style="width:90px">HS đo được</th>'+
-          '<th class="lv2" style="width:90px">TB (ngày)</th>'+
-          '<th class="lv3" style="width:80px">Trung vị</th>'+
-          '<th class="lv3" style="width:70px">p90</th>'+
-          '<th class="lv3" style="width:70px">Tối đa</th>'+
+          '<th class="lv2" style="width:118px" title="Vai trò theo thẩm quyền trong quy trình: Make lập hồ sơ · Check kiểm soát · Validate phê duyệt. Dấu → là khoảng chờ bàn giao giữa 2 vai trò.">Khâu phụ trách</th>'+
+          '<th class="lv2" style="width:90px" title="'+STAT_TIP.n+'">HS đo được</th>'+
+          '<th class="lv2" style="width:90px" title="'+STAT_TIP.tb+'">TB (ngày)</th>'+
+          '<th class="lv3" style="width:80px" title="'+STAT_TIP.tv+'">Trung vị</th>'+
+          '<th class="lv3" style="width:70px" title="'+STAT_TIP.p90+'">p90</th>'+
+          '<th class="lv3" style="width:70px" title="'+STAT_TIP.max+'">Tối đa</th>'+
           '<th class="lv2" style="min-width:150px">Tỷ trọng thời gian TB</th>'+
         '</tr></thead>'+
         '<tbody>'+legRows+'</tbody>'+
@@ -3655,6 +3684,14 @@ function renderStages(s){
       '<span style="color:#d97706;font-weight:700">■</span> vượt mốc &nbsp;'+
       '<span style="color:#dc2626;font-weight:700">■</span> vượt 2 lần mốc. '+
       'Đây là ngưỡng đọc nhanh do báo cáo đặt ra, không phải thời hạn quy định trong quy trình.'+
+      '<div style="margin-top:6px;padding-top:7px;border-top:1px dashed #cbd5e1">'+
+        '<b>Khâu phụ trách</b> ghi theo thẩm quyền: <span class="own-badge own-make">Make</span> lập hồ sơ · '+
+        '<span class="own-badge own-check">Check</span> kiểm soát · '+
+        '<span class="own-badge own-val">Validate</span> phê duyệt. '+
+        'Dạng <span class="own-badge own-m2c">Make → Check</span> là khoảng chờ bàn giao giữa 2 vai trò — '+
+        'hồ sơ đã trình xong, đang chờ vai trò sau xử lý.'+
+      '</div>'+
+      statLegend()+
     '</div>'+
   '</div>'+
 
@@ -3700,8 +3737,12 @@ function renderStages(s){
       '</table>'+
     '</div>'+
     '<div class="gdv-report-footer">'+
-      'Bước dừng cuối lấy theo mốc ngày sau cùng có dữ liệu, không lấy theo cột Trạng thái hồ sơ '+
-      '(27 HS trong dữ liệu có trạng thái "-"). Hàng tô vàng: bước đang giữ ≥20 hồ sơ.'+
+      'Bước dừng cuối lấy theo mốc ngày sau cùng có dữ liệu, không lấy theo cột Trạng thái hồ sơ. '+
+      'Hàng tô vàng: bước đang giữ ≥20 hồ sơ. Cột <b>Khâu phải xử lý tiếp</b> ghi theo thẩm quyền '+
+      '(<span class="own-badge own-make">Make</span> lập hồ sơ · '+
+      '<span class="own-badge own-check">Check</span> kiểm soát · '+
+      '<span class="own-badge own-val">Validate</span> phê duyệt) — đây là vai trò đang giữ hồ sơ, '+
+      'tức người phải tác động để hồ sơ chạy tiếp.'+
     '</div>'+
   '</div>'+
 
@@ -4231,9 +4272,9 @@ function garageQualitySection(s){
           '<th class="lv2" style="width:70px">Số vụ</th>'+
           '<th class="lv2" style="width:120px">Tiền ước/duyệt</th>'+
           '<th class="lv3" style="width:120px">Tiền đã BT cho GR</th>'+
-          '<th class="lv2" style="width:110px">Giám định →<br/>Trình duyệt giá</th>'+
-          '<th class="lv2" style="width:110px">Bảo lãnh →<br/>Trình ĐNTT</th>'+
-          '<th class="lv3" style="width:90px">Chu kỳ<br/>trung vị</th>'+
+          '<th class="lv2" style="width:110px" title="'+STAT_TIP.tv+'">Giám định →<br/>Trình duyệt giá</th>'+
+          '<th class="lv2" style="width:110px" title="'+STAT_TIP.tv+'">Bảo lãnh →<br/>Trình ĐNTT</th>'+
+          '<th class="lv3" style="width:90px" title="'+STAT_TIP.tv+'">Chu kỳ<br/>trung vị</th>'+
           '<th class="lv3" style="width:70px">HS tồn</th>'+
           '<th class="lv3" style="width:90px">Đứng yên<br/>&gt;14 ngày</th>'+
           '<th class="lv2" style="min-width:190px;text-align:left">Đánh giá phối hợp</th>'+
@@ -4242,7 +4283,9 @@ function garageQualitySection(s){
       '</table>'+
     '</div>'+
     '<div class="gdv-report-footer">'+
-      'Ba cột thời gian là <b>trung vị, đơn vị ngày</b>; chỉ đánh giá gara có ≥'+GQ_MIN_HS+' hồ sơ đo được. '+
+      'Ba cột thời gian là <b>trung vị, đơn vị ngày</b> — nghĩa là một nửa số hồ sơ của gara đó nhanh hơn mức này, '+
+      'một nửa chậm hơn; dùng trung vị thay trung bình để một vài hồ sơ kẹt bất thường không bẻ cong cả gara. '+
+      'Chỉ đánh giá gara có ≥'+GQ_MIN_HS+' hồ sơ đo được. '+
       'Hai loại chậm cần cách xử lý khác nhau: <b>chậm gửi báo giá</b> (cột Giám định → Trình duyệt giá) là khâu lập dự toán, '+
       '<b>chậm quyết toán</b> (cột Bảo lãnh → Trình ĐNTT) là khâu hoàn thiện hồ sơ sau sửa chữa. '+
       'Hàng tô vàng: gara có ít nhất 1 dấu hiệu chậm rõ.'+
