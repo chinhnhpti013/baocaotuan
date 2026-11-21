@@ -2591,10 +2591,35 @@ function computeDashGroups(data,dim,forTable){
   });
 }
 
+/* Cuộn màn hình tới khối dữ liệu vừa chọn trong menu thả xuống.
+   Phải trừ chiều cao .topbar (sticky, chứa cả thanh tab) nếu không tiêu đề khối bị topbar che.
+   Đo topbar bằng offsetHeight vì ở ≤1150px topbar xuống 2 hàng nên cao hơn. */
+function scrollToBlock(el){
+  if(!el)return;
+  const jump=()=>{
+    const bar=document.querySelector('.topbar');
+    const off=(bar?bar.offsetHeight:0)+10;   // topbar sticky, ≤1150px xuống 2 hàng nên phải đo
+    const y=el.getBoundingClientRect().top+window.pageYOffset-off;
+    /* Nhảy thẳng (behavior mặc định 'auto') chứ không 'smooth': khối vừa được render lại,
+       animation cuộn mượt hay bị cắt giữa đường khi layout đổi → dừng lưng chừng.
+       Người dùng yêu cầu "chuyển đến vị trí có dữ liệu ngay". */
+    window.scrollTo(0,Math.max(0,y));
+  };
+  jump();
+  // Vẽ chart/co bảng xong layout có thể xê dịch vài px → canh lại 1 nhịp khung hình
+  requestAnimationFrame(jump);
+}
+
 function setDashDim(dim){
   DASH_DIM=dim;
   closeDashDD();                               // chọn xong là đóng menu
+  // Menu có thể được mở từ nút tab khi đang đứng ở tab khác → đưa về tab Tổng quan trước
+  const pane=document.getElementById('tab-dashboard');
+  if(pane&&pane.style.display==='none')switchTab('dashboard',dashTabBtn());
   if(_dashLastS)renderDashboard(_dashLastS);
+  // Khối Phân tích đa chiều nằm cuối tab Tổng quan — chọn tiêu chí xong là cuộn thẳng tới đó,
+  // không để người dùng phải tự tìm xuống dưới (yêu cầu người dùng 11/2026)
+  scrollToBlock(document.getElementById('dash-dyn'));
 }
 
 // ─── Menu tiêu chí nhóm: thả xuống từ nút tab "🎯 Dashboard động" ────────────
@@ -2621,11 +2646,13 @@ function buildDashDimMenu(){
 function openTienichTab(){
   closeDashDD();
   switchTab('tienich',dashTabBtn());
+  scrollToBlock(document.getElementById('tab-tienich'));   // hiện ngay đầu bảng, không giữ vị trí cuộn cũ
 }
 // Mở tab Tra cứu tiến trình từ menu (tab này cũng không còn nút riêng từ 11/2026)
 function openSearchTab(){
   closeDashDD();
   switchTab('search',dashTabBtn());
+  scrollToBlock(document.getElementById('tab-search'));    // đưa ô tra cứu lên ngay dưới topbar
 }
 
 // Menu là position:fixed → tự gán toạ độ ngay dưới nút tab, kẹp lại cho khỏi tràn mép phải
