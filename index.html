@@ -704,12 +704,16 @@ table.gdv td.hl-green{color:#059669}
 .note-box b{color:#92400e}
 .note-box.info{background:#eff6ff;border-left-color:var(--blue);color:#1e3a5f}
 .note-box.info b{color:#1d4ed8}
-/* Bảng của 2 tab mới: nới ô cho dễ đọc (table.gdv mặc định rất chặt) */
-#tab-tiendo table.gdv th,#tab-ruiro table.gdv th{padding:6px 8px;font-size:.62rem;line-height:1.35}
-#tab-tiendo table.gdv td,#tab-ruiro table.gdv td{padding:5px 8px;font-size:.75rem}
-#tab-tiendo table.gdv td.left,#tab-ruiro table.gdv td.left{font-size:.75rem}
+/* Bảng của 2 tab mới: nới ô cho dễ đọc (table.gdv mặc định rất chặt).
+   Tab CLDV dùng cùng bộ bảng này cho khối "Nhóm giải pháp 4 — liên thông số liệu" (11/2026). */
+#tab-tiendo table.gdv th,#tab-ruiro table.gdv th,#tab-cldv table.gdv th{padding:6px 8px;font-size:.62rem;line-height:1.35}
+#tab-tiendo table.gdv td,#tab-ruiro table.gdv td,#tab-cldv table.gdv td{padding:5px 8px;font-size:.75rem}
+#tab-tiendo table.gdv td.left,#tab-ruiro table.gdv td.left,#tab-cldv table.gdv td.left{font-size:.75rem}
+/* Ô mô tả sáng kiến/hành động là câu dài — cho xuống dòng, canh trên để cột số không bị kéo giữa */
+#tab-cldv table.gdv td.left{white-space:normal;line-height:1.45;vertical-align:top}
+#tab-cldv table.gdv td{vertical-align:middle}
 @media(max-width:600px){
-  #tab-tiendo table.gdv td,#tab-ruiro table.gdv td{padding:4px 5px;font-size:.68rem}
+  #tab-tiendo table.gdv td,#tab-ruiro table.gdv td,#tab-cldv table.gdv td{padding:4px 5px;font-size:.68rem}
 }
 
 /* ── TLBT section responsive layout ── */
@@ -4754,6 +4758,322 @@ function renderInfographic(){
 }
 
 // ─── TAB: ĐỀ XUẤT CẢI TIẾN CLDV ─────────────────────────────────────────────
+/* ═══ CLDV — LIÊN THÔNG SỐ LIỆU TỪ TAB TIẾN ĐỘ & TAB KIỂM SOÁT RỦI RO (11/2026) ═
+   Hai tab kia chỉ ĐO (hồ sơ chờ ở chặng nào, tồn dừng ở bước nào, gara nào chậm,
+   hồ sơ nào có dấu hiệu, nợ bao nhiêu, dữ liệu khai báo sạch đến đâu). Khối này biến
+   từng kết quả đo đó thành MỘT sáng kiến cải tiến có khâu chủ trì + chỉ tiêu đo được,
+   để tab CLDV không còn là đề xuất chung mà gắn trực tiếp vào số của kỳ báo cáo.
+   Cố ý KHÔNG thêm biểu đồ: các bảng dưới đọc thẳng số của 2 tab kia, vẽ lại là lặp. */
+const CLDV_LEG_FIX={
+  'Tai nạn → Thông báo TN':{act:'Phát hành hướng dẫn 1 trang “Gặp tai nạn cần làm gì” (QR + hotline) kèm đơn và dán tại gara đối tác; tin nhắn tự động nhắc nghĩa vụ thông báo ngay khi có tổn thất.',kpi:'% hồ sơ được thông báo trong 24 giờ',ky:'Tháng'},
+  'Thông báo TN → Mở HSBT':{act:'Chốt quy ước tiếp nhận: mọi thông báo phải được mở HSBT trong ngày làm việc kế tiếp; phân công trực luân phiên nhận tin ngoài giờ và cuối tuần.',kpi:'Trung vị Thông báo → Mở HSBT ≤ 1 ngày',ky:'Tuần'},
+  'Mở HSBT → Giám định chi tiết':{act:'Điều phối giám định theo địa bàn (Móng Cái · Cẩm Phả · Đông Triều · Hạ Long): đặt lịch ngay khi mở hồ sơ, giám định qua ảnh/video cho tổn thất nhỏ, không để hồ sơ chờ gom chuyến.',kpi:'Trung vị Mở HSBT → Giám định ≤ 2 ngày',ky:'Tháng'},
+  'Giám định chi tiết → Trình duyệt giá':{act:'Cam kết thời hạn báo giá với từng gara (phụ lục cam kết CLDV): GĐV giao phiếu yêu cầu báo giá ngay tại gara, nhắc vào ngày 3 và ngày 5; quá 7 ngày thì tự lập dự toán hoặc chuyển gara khác.',kpi:'Trung vị Giám định → Trình duyệt giá ≤ 7 ngày',ky:'Tháng'},
+  'Trình duyệt giá → Check duyệt giá':{act:'Lịch check cố định 2 lần/ngày (sáng – chiều) và danh sách hồ sơ chờ check gửi tự động cuối ngày để không hồ sơ nào qua đêm thứ hai.',kpi:'100% hồ sơ được check trong 48 giờ',ky:'Tuần'},
+  'Check duyệt giá → Validate duyệt giá':{act:'Phân quyền validate dự phòng khi người phê duyệt đi công tác; hồ sơ chờ validate quá 2 ngày tự động báo Trưởng phòng.',kpi:'100% hồ sơ được validate trong 48 giờ',ky:'Tuần'},
+  'Validate duyệt giá → Bảo lãnh':{act:'Soạn bảo lãnh theo mẫu tự điền từ dữ liệu duyệt giá, phát hành ngay trong ngày validate và gửi bản mềm cho gara + khách.',kpi:'Trung vị Validate → Bảo lãnh ≤ 1 ngày',ky:'Tháng'},
+  'Bảo lãnh → Trình ĐNTT':{act:'Lịch đốc quyết toán cố định sau bảo lãnh (mốc ngày 7 – 10 – 14): GĐV xác nhận tiến độ sửa chữa, hẹn ngày nhận hồ sơ quyết toán; gara chậm 2 kỳ liên tiếp đưa vào danh sách rà soát hợp tác.',kpi:'Trung vị Bảo lãnh → Trình ĐNTT ≤ 10 ngày',ky:'Tháng'},
+  'Trình ĐNTT → Check ĐNTT':{act:'Checklist hồ sơ quyết toán đính kèm sẵn trong ĐNTT (hoá đơn, biên bản, ảnh hoàn thành) để Check không phải trả lại hồ sơ thiếu chứng từ.',kpi:'% ĐNTT bị trả lại < 5%',ky:'Tuần'},
+  'Check ĐNTT → Validate ĐNTT':{act:'Gộp phiên validate ĐNTT vào đúng phiên validate duyệt giá hằng ngày để hồ sơ không chờ thêm một nhịp.',kpi:'100% ĐNTT được validate trong 48 giờ',ky:'Tuần'},
+  'Validate ĐNTT → Duyệt bồi thường':{act:'Duyệt bồi thường ngay trong ngày validate; cuối ngày đối chiếu danh sách validate ↔ danh sách đã duyệt, không để hồ sơ rơi giữa 2 bước.',kpi:'Trung vị Validate ĐNTT → Duyệt BT ≤ 1 ngày',ky:'Tuần'},
+  'Duyệt bồi thường → Trả tiền GR':{act:'Đối soát công nợ hằng tuần với khâu chi trả: hồ sơ đã duyệt mà chưa chuyển tiền phải có lý do ghi nhận (thiếu số tài khoản, chờ hoá đơn…).',kpi:'Không còn hồ sơ đã duyệt BT quá 30 ngày chưa chi trả',ky:'Tuần'}
+};
+const CLDV_FLOW_FIX={
+  '(Chưa có mốc)':'Rà từng hồ sơ: cập nhật mốc còn thiếu vào hệ thống hoặc đóng hồ sơ đã xử lý xong nhưng chưa ghi nhận.',
+  'Mở HSBT':'Chốt lịch giám định dứt điểm trong tuần; hồ sơ không liên hệ được khách thì gửi thư mời giám định và lập biên bản ghi nhận.',
+  'Giám định chi tiết':'Đốc gara gửi báo giá theo mốc ngày 3 – 5; quá hạn thì GĐV tự lập dự toán hoặc đề xuất chuyển gara.',
+  'Trình duyệt giá':'Đưa vào danh sách chờ check hằng ngày, xử lý trong 48 giờ.',
+  'Check duyệt giá':'Xếp vào phiên validate gần nhất, quá 2 ngày báo Trưởng phòng.',
+  'Validate duyệt giá':'Phát hành bảo lãnh ngay trong ngày và gửi bản mềm cho gara + khách hàng.',
+  'Bảo lãnh':'Xác nhận tiến độ sửa chữa, hẹn ngày quyết toán và hoàn thiện ĐNTT theo checklist.',
+  'Trình ĐNTT':'Check ĐNTT trong 48 giờ, trả lại ngay nếu thiếu chứng từ (kèm lý do cụ thể).',
+  'Check ĐNTT':'Validate ĐNTT trong phiên hằng ngày.',
+  'Validate ĐNTT':'Duyệt bồi thường và chuyển khâu chi trả trong ngày.',
+  'Duyệt bồi thường':'Theo dõi chi trả thực tế, đưa vào bảng đối soát công nợ hằng tuần.',
+  'Trả tiền GR':'Đã chi trả — kiểm tra lý do hồ sơ chưa được đóng trên hệ thống.'
+};
+/* Hành động cho gara theo nhận định đã chấm ở tab Tiến độ (mục 4 — bảng gara) */
+function cldvGaraAct(g){
+  const t=(g.tags||[]).map(function(x){return x.t});
+  const slowBg=t.indexOf('Chậm gửi báo giá')>=0, slowQt=t.indexOf('Chậm quyết toán')>=0;
+  const v=[];
+  if(slowBg)v.push('báo giá trung vị '+g.w1s.med.toFixed(0)+' ngày');
+  if(slowQt)v.push('quyết toán trung vị '+g.w2s.med.toFixed(0)+' ngày');
+  const so=v.length?'Hiện '+v.join(' · ')+'. ':'';
+  const ton=g.ton?' Đang giữ '+fmtN(g.ton)+' HS tồn'+(g.idle14?', trong đó '+fmtN(g.idle14)+' HS đứng yên >14 ngày':'')+' — rà cùng gara trong buổi làm việc.':'';
+  if(slowBg&&slowQt)
+    return so+'Làm việc trực tiếp với chủ gara, ký lại cam kết thời hạn (báo giá ≤5 ngày, quyết toán ≤10 ngày); không đạt 2 kỳ liên tiếp thì tạm dừng giới thiệu hồ sơ mới.'+ton;
+  if(slowBg)
+    return so+'Ký cam kết gửi báo giá ≤5 ngày; GĐV giao phiếu yêu cầu báo giá ngay tại gara, quá 7 ngày thì tự lập dự toán hoặc đề xuất chuyển gara.'+ton;
+  if(slowQt)
+    return so+'Chốt lịch quyết toán định kỳ 2 tuần/lần tại gara, gắn tiến độ quyết toán vào điều kiện thanh toán.'+ton;
+  if(t.indexOf('Quyết toán hơi chậm')>=0||t.indexOf('Báo giá hơi chậm')>=0)
+    return'Nhắc mốc thời hạn trong cuộc họp đối tác quý; theo dõi thêm 1 kỳ trước khi đưa vào nhóm cần siết.'+ton;
+  return'Giữ mức phối hợp hiện tại; ưu tiên giới thiệu khách tới gara này.';
+}
+function cldvActionSection(s){
+  const c=s.cycle,k=s.risk;
+  if(!c||!k)return'';
+  const G=computeGarageStats(s.rows);
+  const Q=computeDataQuality(s.rows);
+  const D=computeDebtStats(s.rows);
+  const R=computeRepeatStats(s.rows);
+  const asOfTxt=c.asOf.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const b1=c.bott[0],b2=c.bott[1];
+  const tietKiem=k.gtSum+k.csrSum;
+  const band30=(D.bands.filter(function(b){return b.lab==='30 ngày trở lên'})[0]||{rows:[]}).rows;
+  const noReason=(k.reasons.filter(function(r){return r.ly===RISK_NO_REASON})[0]||null);
+  const topReason=(k.reasons.filter(function(r){return r.ly!==RISK_NO_REASON})[0]||k.reasons[0]||null);
+  const slowGara=G.big.filter(function(g){return g.slow}).slice(0,10);
+  const qItems=Q.items.filter(function(it){return!it.noScore}).slice(0,4);
+  const prio={hi:'<span class="flag-chip flag-hi">Ưu tiên cao</span>',
+              md:'<span class="flag-chip flag-md">Ưu tiên vừa</span>',
+              lo:'<span class="flag-chip flag-lo">Theo dõi</span>'};
+
+  // ── Bảng 1: điểm nghẽn theo chặng → sáng kiến ───────────────────────────────
+  const topLegs=c.legs.slice().sort(function(a,b){return b.avg-a.avg}).slice(0,6);
+  const legRows=topLegs.map(function(l,i){
+    const fx=CLDV_LEG_FIX[l.lab]||{act:'Rà soát nguyên nhân hồ sơ phải chờ ở chặng này và chốt mốc xử lý nội bộ.',kpi:'Giảm thời gian trung bình của chặng',ky:'Tháng'};
+    const cls=l.avg>=l.sla*2?'hl-red':l.avg>=l.sla?'hl-amber':'hl-green';
+    const tgt=Math.max(l.sla,Math.round(l.avg*0.7*10)/10);
+    return'<tr>'+
+      '<td>'+(i+1)+'</td>'+
+      '<td class="left"><b>'+l.lab+'</b></td>'+
+      '<td>'+ownChip(l.own,l.cls)+'</td>'+
+      '<td class="'+cls+'"><b>'+l.avg.toFixed(1)+'</b></td>'+
+      '<td>'+l.med.toFixed(0)+'</td>'+
+      '<td style="color:#64748b">'+fmtN(l.sla)+'</td>'+
+      '<td class="'+(l.avg>l.sla?'hl-red':'hl-green')+'">'+(l.avg>l.sla?'+'+(l.avg-l.sla).toFixed(1):'đạt')+'</td>'+
+      '<td class="pct">'+l.share.toFixed(1)+'%</td>'+
+      '<td class="left">'+fx.act+'</td>'+
+      '<td class="left" style="font-size:.7rem"><b>'+fx.kpi+'</b><br/>'+
+        '<span style="color:#64748b">Đưa TB về ≤ '+tgt.toFixed(1)+' ngày &nbsp;·&nbsp; kỳ: '+fx.ky+'</span></td>'+
+    '</tr>';
+  }).join('');
+
+  // ── Bảng 2: tồn đang dừng ở bước nào → việc chốt ────────────────────────────
+  const topFlow=c.flow.slice().sort(function(a,b){return b.n-a.n}).slice(0,6);
+  const flowRows=topFlow.map(function(f,i){
+    const cls=f.idleAvg>=30?'hl-red':f.idleAvg>=14?'hl-amber':'';
+    return'<tr>'+
+      '<td>'+(i+1)+'</td>'+
+      '<td class="left"><b>'+f.lab+'</b></td>'+
+      '<td><b>'+fmtN(f.n)+'</b></td>'+
+      '<td class="pct">'+f.share.toFixed(1)+'%</td>'+
+      '<td class="'+(f.ge90?'hl-red':'')+'">'+fmtN(f.ge90)+'</td>'+
+      '<td class="'+cls+'"><b>'+f.idleAvg.toFixed(1)+'</b></td>'+
+      '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace">'+fmtMBC(f.bt)+'</td>'+
+      '<td>'+ownChip(f.next.txt,f.next.own)+'</td>'+
+      '<td class="left">'+(CLDV_FLOW_FIX[f.lab]||'Rà soát nguyên nhân dừng và chốt mốc xử lý tiếp.')+'</td>'+
+    '</tr>';
+  }).join('');
+
+  // ── Bảng 3: gara cần siết cam kết phối hợp ──────────────────────────────────
+  const garaRows=slowGara.map(function(g,i){
+    return'<tr>'+
+      '<td>'+(i+1)+'</td>'+
+      '<td class="left"><b>'+cutTxt(g.name,34)+'</b></td>'+
+      '<td>'+fmtN(g.n)+'</td>'+
+      '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace">'+fmtMBC(g.bt)+'</td>'+
+      '<td class="'+(g.w1s.med>=10?'hl-red':g.w1s.med>=5?'hl-amber':'')+'"><b>'+g.w1s.med.toFixed(0)+'</b></td>'+
+      '<td class="'+(g.w2s.med>=20?'hl-red':g.w2s.med>=12?'hl-amber':'')+'"><b>'+g.w2s.med.toFixed(0)+'</b></td>'+
+      '<td>'+fmtN(g.ton)+'</td>'+
+      '<td class="'+(g.idle14?'hl-amber':'')+'">'+fmtN(g.idle14)+'</td>'+
+      '<td class="left">'+(g.tags||[]).map(function(t){return'<span class="flag-chip '+t.lv+'">'+t.t+'</span>'}).join('')+'</td>'+
+      '<td class="left">'+cldvGaraAct(g)+'</td>'+
+    '</tr>';
+  }).join('');
+
+  // ── Bảng 4: sáng kiến từ tab Kiểm soát rủi ro ───────────────────────────────
+  const riskIdeas=[];
+  if(topReason)riskIdeas.push({t:'Chặn nguyên nhân giảm trừ lớn nhất từ khâu cấp đơn',
+    can:'Lý do “'+cutTxt(topReason.ly,46)+'”: '+fmtN(topReason.n)+' HS · '+fmtMBC(topReason.tien),
+    own:'Tiếp nhận',cls:'own-sys',kpi:'Giảm 20% số hồ sơ bị giảm trừ vì lý do này',ky:'Quý',lv:'md',
+    act:'Đưa lý do này thành một mục tư vấn bắt buộc khi cấp đơn và một câu nhắc trong tin nhắn sau tai nạn; soạn mẫu giải thích giảm trừ để GĐV nói thống nhất, giảm tranh chấp với khách.'});
+  if(noReason)riskIdeas.push({t:'Bắt buộc ghi lý do giảm trừ bồi thường',
+    can:fmtN(noReason.n)+' HS giảm trừ '+fmtMBC(noReason.tien)+' không ghi lý do',
+    own:'Make → Check',cls:'own-m2c',kpi:'0 hồ sơ giảm trừ thiếu lý do',ky:'Tuần',lv:'hi',
+    act:'Khâu Check không duyệt hồ sơ có số tiền giảm trừ mà ô lý do để trống — khách hàng khiếu nại thì phòng không có căn cứ trả lời.'});
+  if(k.hiCount)riskIdeas.push({t:'Chốt kiểm soát hồ sơ có dấu hiệu mức cao',
+    can:fmtN(k.hiCount)+' HS mức cao / '+fmtN(k.flagged.length)+' HS có dấu hiệu',
+    own:'Check → Validate',cls:'own-c2v',kpi:'100% hồ sơ mức cao có ý kiến rà soát trước khi duyệt giá',ky:'Tháng',lv:'hi',
+    act:'Hồ sơ có dấu hiệu mức cao (tai nạn sát ngày hiệu lực, phí trả sau tai nạn) phải kèm ý kiến xác minh của Check trước khi trình duyệt giá — rà soát theo quy tắc và công văn, không kết luận trục lợi từ dấu hiệu.'});
+  if(D.pend.length)riskIdeas.push({t:'Đối soát công nợ bồi thường hằng tuần',
+    can:fmtN(D.pend.length)+' HS đã duyệt BT chưa chi trả · '+fmtMBC(D.pendBt)+(band30.length?' · '+fmtN(band30.length)+' HS quá 30 ngày':''),
+    own:'Hệ thống tự động',cls:'own-sys',kpi:'Không còn hồ sơ đã duyệt BT quá 30 ngày chưa chi trả',ky:'Tuần',lv:'md',
+    act:'Lấy danh sách ở mục 8 tab Kiểm soát rủi ro làm bảng theo dõi tuần: mỗi hồ sơ phải ghi rõ vướng ở đâu (thiếu số tài khoản, chờ hoá đơn, chờ xác nhận khách) và ngày dự kiến chi trả.'});
+  if(D.adv.length)riskIdeas.push({t:'Thu hồi tạm ứng đúng hạn',
+    can:fmtN(D.adv.length)+' HS còn '+fmtMBC(D.advCon)+' tạm ứng chưa thu hồi',
+    own:'Make',cls:'own-make',kpi:'100% tạm ứng được thu hồi hoặc quyết toán trong 30 ngày',ky:'Tháng',lv:'md',
+    act:'Gắn mỗi khoản tạm ứng với một mốc quyết toán cụ thể; GĐV báo cáo tiến độ thu hồi trong họp tuần.'});
+  if(R.c4||R.cus.length)riskIdeas.push({t:'Khuyến nghị tái tục cho xe/khách nhiều vụ',
+    can:fmtN(R.c4)+' xe ≥4 vụ · '+fmtN(R.cus.length)+' khách hàng ≥5 hồ sơ',
+    own:'Tiếp nhận',cls:'own-sys',kpi:'100% xe ≥4 vụ có ý kiến tái tục (tăng phí / áp khấu trừ)',ky:'Quý',lv:'md',
+    act:'Gửi danh sách ở mục 6–7 tab Kiểm soát rủi ro cho khâu cấp đơn làm căn cứ tái tục; đồng thời rà hồ sơ có 2 vụ cách nhau ≤15 ngày để loại trường hợp tách vụ hoặc trùng hồ sơ.'});
+  qItems.slice(0,2).forEach(function(it){
+    riskIdeas.push({t:'Siết kỷ luật nhập liệu: '+cutTxt(it.label,52),
+      can:fmtN(it.n)+' HS ('+it.pct.toFixed(1)+'%) · điểm tin cậy dữ liệu '+Q.score.toFixed(1)+'/100',
+      own:'Make',cls:'own-make',kpi:'Nâng điểm tin cậy dữ liệu lên ≥ '+Math.min(Math.round(Q.score+3),100)+'/100',ky:'Tháng',
+      lv:it.lv==='hi'?'hi':'lo',
+      act:'Hệ quả: '+(it.impact||'làm sai số liệu báo cáo').replace(/^./,function(ch){return ch.toLowerCase()})+
+          '. Cách làm: đưa trường này thành mục bắt buộc trong checklist hồ sơ, khâu Check trả lại hồ sơ còn thiếu.'});
+  });
+  const riskRows=riskIdeas.map(function(x,i){
+    return'<tr>'+
+      '<td>'+(i+1)+'</td>'+
+      '<td class="left"><b>'+x.t+'</b><br/><span style="font-size:.68rem;color:#475569">'+x.act+'</span></td>'+
+      '<td class="left" style="font-size:.7rem">'+x.can+'</td>'+
+      '<td>'+ownChip(x.own,x.cls)+'</td>'+
+      '<td class="left" style="font-size:.7rem">'+x.kpi+'</td>'+
+      '<td>'+x.ky+'</td>'+
+      '<td>'+(prio[x.lv]||'')+'</td>'+
+    '</tr>';
+  }).join('');
+
+  return(
+  '<div style="background:linear-gradient(135deg,#ecfeff,#fff);border:2px solid #22d3ee;border-radius:12px;padding:18px 20px;margin-bottom:20px">'+
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">'+
+      '<span style="font-size:1.4rem">🔗</span>'+
+      '<div>'+
+        '<div style="font-size:.72rem;font-weight:700;color:#0e7490;text-transform:uppercase;letter-spacing:.06em">NHÓM GIẢI PHÁP 4 — LIÊN THÔNG SỐ LIỆU</div>'+
+        '<div style="font-size:1rem;font-weight:700;color:#1e293b">TỪ “TIẾN ĐỘ &amp; HỒ SƠ TỒN” VÀ “KIỂM SOÁT RỦI RO” → SÁNG KIẾN CẢI TIẾN</div>'+
+      '</div>'+
+      '<div style="margin-left:auto;text-align:right">'+
+        '<div style="font-size:.7rem;color:#94a3b8">Chu kỳ trung vị Mở HSBT → Duyệt BT</div>'+
+        '<div style="font-size:.88rem;font-weight:700;color:#0e7490">'+c.overall.med.toFixed(0)+' ngày · p90 '+fmtN(c.overall.p90)+' ngày</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="note-box info" style="margin-top:12px">'+
+      '<b>Cách đọc khối này:</b> ba nhóm giải pháp trên đề xuất theo hướng chung; khối này lấy đúng kết quả đã đo ở '+
+      '<b>⏱️ Tiến độ &amp; Hồ sơ tồn</b> (chặng nào chờ lâu, tồn dừng ở bước nào, gara nào chậm, dữ liệu khai báo sạch đến đâu) và '+
+      '<b>🛡️ Kiểm soát rủi ro</b> (giảm trừ, dấu hiệu cần rà soát, công nợ, tạm ứng, xe/khách nhiều vụ), '+
+      'rồi gắn mỗi con số với <b>một việc làm cụ thể — khâu chủ trì — chỉ tiêu đo được — kỳ hạn</b>.<br/>'+
+      '<b>Dữ liệu đến ngày:</b> '+asOfTxt+' &nbsp;·&nbsp; Mốc nội bộ của từng chặng là ngưỡng đọc nhanh do báo cáo đặt ra, '+
+      'không phải thời hạn quy định trong quy trình. Phần dấu hiệu rà soát <b>không</b> là kết luận trục lợi.'+
+    '</div>'+
+    '<div class="kpi-grid">'+
+      (b1?kpi(b1.avg.toFixed(1)+' ngày','Nghẽn số 1',cutTxt(b1.lab,34),'red'):'')+
+      (b2?kpi(b2.avg.toFixed(1)+' ngày','Nghẽn số 2',cutTxt(b2.lab,34),'orange'):'')+
+      kpi(fmtN(c.idle30),'HS đứng yên >30 ngày','trong '+fmtN(c.tonTotal)+' HS đang tồn','purple')+
+      kpi(fmtN(G.slowN)+'/'+fmtN(G.bigN),'Gara có dấu hiệu chậm','đang giữ '+fmtMBC(G.slowBt)+' tiền ước/duyệt','amber')+
+      kpi(fmtN(k.hiCount),'HS cần rà soát ngay','trong '+fmtN(k.flagged.length)+' HS có dấu hiệu','red')+
+      kpi(fmtMBC(tietKiem),'Tiền tiết kiệm đã đạt','giảm trừ + chia sẻ rủi ro','green')+
+      kpi(fmtMBC(D.pendBt),'Công nợ chờ chi trả',fmtN(D.pend.length)+' HS đã duyệt BT chưa trả','blue')+
+      kpi(Q.score.toFixed(1)+'/100','Điểm tin cậy dữ liệu','chất lượng khai báo đầu vào','teal')+
+    '</div>'+
+
+    // 4.1 — chặng nghẽn
+    '<div class="gdv-report-wrap" style="margin-bottom:18px">'+
+      '<div class="gdv-report-header" style="background:linear-gradient(135deg,#0e7490,#22d3ee)">'+
+        '<div class="title">4.1. ĐIỂM NGHẼN THEO CHẶNG → SÁNG KIẾN RÚT NGẮN THỜI GIAN</div>'+
+        '<div class="period">6 chặng chờ lâu nhất (nguồn: tab Tiến độ, bảng 1)'+
+          ((b1&&b2)?' &nbsp;·&nbsp; hai chặng đầu chiếm <b>'+(b1.share+b2.share).toFixed(1)+'%</b> tổng thời gian chờ':'')+'</div>'+
+      '</div>'+
+      '<div class="gdv-table-outer">'+
+        '<table class="gdv" style="min-width:1120px">'+
+          '<thead><tr>'+
+            '<th style="width:36px">Stt</th>'+
+            '<th class="lv2" style="min-width:190px;text-align:left">Chặng</th>'+
+            '<th class="lv2" style="width:110px">Khâu chủ trì</th>'+
+            '<th class="lv2" style="width:70px" title="'+STAT_TIP.tb+'">TB</th>'+
+            '<th class="lv3" style="width:66px" title="'+STAT_TIP.tv+'">Trung vị</th>'+
+            '<th class="lv3" style="width:64px">Mốc nội bộ</th>'+
+            '<th class="lv3" style="width:70px">Vượt mốc</th>'+
+            '<th class="lv3" style="width:62px">% chu kỳ</th>'+
+            '<th class="lv2" style="min-width:300px;text-align:left">Sáng kiến cải tiến</th>'+
+            '<th class="lv2" style="min-width:180px;text-align:left">Chỉ tiêu đo &amp; kỳ hạn</th>'+
+          '</tr></thead>'+
+          '<tbody>'+legRows+'</tbody>'+
+        '</table>'+
+      '</div>'+
+      '<div class="gdv-report-footer">Đơn vị cột TB / Trung vị / Mốc nội bộ / Vượt mốc: <b>ngày</b>. '+
+        'Chỉ tiêu “đưa TB về ≤ …” lấy mức giảm 30% so với hiện tại nhưng không thấp hơn mốc nội bộ của chặng.'+statLegend()+'</div>'+
+    '</div>'+
+
+    // 4.2 — tồn dừng ở bước nào
+    '<div class="gdv-report-wrap" style="margin-bottom:18px">'+
+      '<div class="gdv-report-header" style="background:linear-gradient(135deg,#0f766e,#14b8a6)">'+
+        '<div class="title">4.2. HỒ SƠ TỒN ĐANG DỪNG Ở BƯỚC NÀO → VIỆC PHẢI CHỐT</div>'+
+        '<div class="period">6 bước giữ nhiều hồ sơ nhất trong '+fmtN(c.tonTotal)+' HS tồn (nguồn: tab Tiến độ, bảng 2) '+
+          '&nbsp;·&nbsp; “Đứng yên” tính đến '+asOfTxt+'</div>'+
+      '</div>'+
+      '<div class="gdv-table-outer">'+
+        '<table class="gdv" style="min-width:1060px">'+
+          '<thead><tr>'+
+            '<th style="width:36px">Stt</th>'+
+            '<th class="lv2" style="min-width:150px;text-align:left">Bước dừng cuối</th>'+
+            '<th class="lv2" style="width:64px">Số HS</th>'+
+            '<th class="lv3" style="width:62px">% tồn</th>'+
+            '<th class="lv3" style="width:70px">≥90 ngày</th>'+
+            '<th class="lv2" style="width:84px">Đứng yên TB</th>'+
+            '<th class="lv2" style="width:118px">Tiền ước/duyệt</th>'+
+            '<th class="lv2" style="min-width:190px">Khâu phải xử lý tiếp</th>'+
+            '<th class="lv2" style="min-width:300px;text-align:left">Việc phải chốt</th>'+
+          '</tr></thead>'+
+          '<tbody>'+(flowRows||'<tr><td colspan="9" style="text-align:center;padding:18px;color:var(--green);font-weight:700">✅ Không có hồ sơ tồn</td></tr>')+'</tbody>'+
+        '</table>'+
+      '</div>'+
+      '<div class="gdv-report-footer">Danh sách hồ sơ cụ thể của từng bước xem ở <b>mục 3 tab ⏱️ Tiến độ &amp; Hồ sơ tồn</b>. '+
+        'Mỗi tuần chọn ra nhóm có “Đứng yên TB” lớn nhất để xử lý trước — đó là nhóm khách hàng chờ lâu nhất mà chưa ai tác động.</div>'+
+    '</div>'+
+
+    // 4.3 — gara
+    (garaRows?
+    '<div class="gdv-report-wrap" style="margin-bottom:18px">'+
+      '<div class="gdv-report-header" style="background:linear-gradient(135deg,#b45309,#f59e0b)">'+
+        '<div class="title">4.3. ĐỐI TÁC GARA/SHOWROOM CẦN SIẾT CAM KẾT PHỐI HỢP</div>'+
+        '<div class="period">'+fmtN(G.slowN)+'/'+fmtN(G.bigN)+' gara (≥'+GQ_MIN_HS+' HS) có dấu hiệu chậm, đang giữ <b>'+fmtMBC(G.slowBt)+'</b> tiền ước/duyệt '+
+          '&nbsp;·&nbsp; bảng liệt kê '+fmtN(Math.min(slowGara.length,10))+' gara giữ nhiều tiền nhất (nguồn: tab Tiến độ, mục 4)</div>'+
+      '</div>'+
+      '<div class="gdv-table-outer">'+
+        '<table class="gdv" style="min-width:1100px">'+
+          '<thead><tr>'+
+            '<th style="width:36px">Stt</th>'+
+            '<th class="lv2" style="min-width:180px;text-align:left">Gara / Showroom</th>'+
+            '<th class="lv2" style="width:58px">Số HS</th>'+
+            '<th class="lv2" style="width:118px">Tiền ước/duyệt</th>'+
+            '<th class="lv3" style="width:92px" title="Trung vị số ngày từ giám định chi tiết đến khi trình duyệt giá — đo tốc độ gửi báo giá">Báo giá (TV)</th>'+
+            '<th class="lv3" style="width:100px" title="Trung vị số ngày từ bảo lãnh đến khi trình ĐNTT — đo tốc độ quyết toán">Quyết toán (TV)</th>'+
+            '<th class="lv3" style="width:62px">HS tồn</th>'+
+            '<th class="lv3" style="width:88px">Đứng yên >14</th>'+
+            '<th class="lv2" style="min-width:150px;text-align:left">Nhận định</th>'+
+            '<th class="lv2" style="min-width:300px;text-align:left">Hành động với đối tác</th>'+
+          '</tr></thead>'+
+          '<tbody>'+garaRows+'</tbody>'+
+        '</table>'+
+      '</div>'+
+      '<div class="gdv-report-footer">Chỉ chấm điểm gara có từ '+GQ_MIN_HS+' hồ sơ trở lên (ít hơn thì trung vị không có nghĩa); '+
+        'dòng “TNDS” trong bảng gara ở tab Tiến độ là hồ sơ không qua gara nên không được chấm điểm và không xuất hiện ở đây. '+
+        'Đơn vị 2 cột thời gian: <b>ngày</b>.</div>'+
+    '</div>':'')+
+
+    // 4.4 — rủi ro, công nợ, dữ liệu
+    (riskRows?
+    '<div class="gdv-report-wrap" style="margin-bottom:14px">'+
+      '<div class="gdv-report-header" style="background:linear-gradient(135deg,#7f1d1d,#ef4444)">'+
+        '<div class="title">4.4. SÁNG KIẾN TỪ KIỂM SOÁT RỦI RO, CÔNG NỢ VÀ CHẤT LƯỢNG DỮ LIỆU</div>'+
+        '<div class="period">Nguồn: tab 🛡️ Kiểm soát rủi ro (mục 1–8) và mục 5 tab ⏱️ Tiến độ &amp; Hồ sơ tồn</div>'+
+      '</div>'+
+      '<div class="gdv-table-outer">'+
+        '<table class="gdv" style="min-width:1080px">'+
+          '<thead><tr>'+
+            '<th style="width:36px">Stt</th>'+
+            '<th class="lv2" style="min-width:330px;text-align:left">Sáng kiến &amp; cách làm</th>'+
+            '<th class="lv2" style="min-width:190px;text-align:left">Căn cứ số liệu kỳ này</th>'+
+            '<th class="lv2" style="width:120px">Khâu chủ trì</th>'+
+            '<th class="lv2" style="min-width:200px;text-align:left">Chỉ tiêu đo</th>'+
+            '<th class="lv3" style="width:62px">Kỳ hạn</th>'+
+            '<th class="lv3" style="width:96px">Ưu tiên</th>'+
+          '</tr></thead>'+
+          '<tbody>'+riskRows+'</tbody>'+
+        '</table>'+
+      '</div>'+
+      '<div class="gdv-report-footer">Các sáng kiến trên chỉ dùng số liệu sẵn có trong dashboard nên tiến độ thực hiện '+
+        'kiểm tra lại được ngay ở 2 tab nguồn, không cần báo cáo thủ công.</div>'+
+    '</div>':'')+
+  '</div>');
+}
+
 function renderCLDV(s){
   const el=document.getElementById('tab-cldv');
   if(!RAW.length){el.innerHTML='<p style="padding:20px;color:var(--text2)">Không có dữ liệu.</p>';return;}
@@ -4853,11 +5173,18 @@ function renderCLDV(s){
   const mtQuyAvg=Math.max(Math.round(s.avgDays*0.8),1);          // quý: TB tồn giảm ~20%, luôn thấp hơn hiện tại
   const mtQuyTreo=Math.round(tienTreo*0.6);                      // quý: giảm ~40% tiền treo
   const mtQuyQuaHanPct=Math.max(Math.round(tyLeQuaHan*0.7),0);   // quý: tỷ lệ quá hạn giảm ~30%, luôn thấp hơn hiện tại
-  // Helper tô số liệu nổi bật theo tông màu từng trục
+  /* Mục tiêu lấy từ 2 tab Tiến độ & Kiểm soát rủi ro (chỉ đọc s.cycle/s.risk đã tính sẵn trong
+     computeStats — không gọi lại engine để khỏi thêm một lượt duyệt mảng) */
+  const CY=s.cycle||null, RK=s.risk||null;
+  const bn1=CY&&CY.bott[0]?CY.bott[0]:null;
+  const bn1Tgt=bn1?Math.max(bn1.sla,Math.round(bn1.avg*0.7*10)/10):0;
+  const cycMed=CY?CY.overall.med:0;
+  const cycTgt=cycMed>0?Math.max(1,Math.round(cycMed*0.8)):0;
+  // Helper tô số liệu nổi bật theo tông màu từng nhóm giải pháp
   const hl=(v,c)=>`<span style="font-weight:800;color:${c}">${v}</span>`;
-  const h1=v=>hl(v,'#c2410c'); // Trục 1 — cam
-  const h2=v=>hl(v,'#047857'); // Trục 2 — xanh lá
-  const h3=v=>hl(v,'#1565C0'); // Trục 3 — xanh dương
+  const h1=v=>hl(v,'#c2410c'); // Nhóm 1 — cam
+  const h2=v=>hl(v,'#047857'); // Nhóm 2 — xanh lá
+  const h3=v=>hl(v,'#1565C0'); // Nhóm 3 — xanh dương
 
   // === NỘI DUNG ĐỀ XUẤT (gắn số liệu thực tế) ===
   const suggest1=[
@@ -4893,7 +5220,7 @@ function renderCLDV(s){
   el.innerHTML=`
     <div style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#be185d 100%);border-radius:12px;padding:20px 24px;margin-bottom:20px;color:#fff">
       <div style="font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:4px">ĐỀ XUẤT CẢI TIẾN CHẤT LƯỢNG DỊCH VỤ · PTISOS QUẢNG NINH · T${month}/${year}</div>
-      <div style="font-size:1.1rem;font-weight:700;margin-bottom:3px">Phân tích 3 trục: Chất lượng dịch vụ · Hiệu quả & Năng suất · Quan hệ khách hàng</div>
+      <div style="font-size:1.1rem;font-weight:700;margin-bottom:3px">Phân tích theo 4 nhóm giải pháp: Chất lượng dịch vụ · Hiệu quả &amp; Năng suất · Quan hệ khách hàng · Liên thông số liệu từ Tiến độ &amp; Rủi ro</div>
       <div style="font-size:.8rem;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:14px">Từ ${fmtN(data.length)} hồ sơ bồi thường xe cơ giới tại Khu vực Quảng Ninh${hasBaoLanh?' — có dữ liệu Ngày bảo lãnh':''} · Phân tích từ ngày mở HS đến ${hasBaoLanh?'ngày cấp bảo lãnh':'trạng thái hiện tại'}.</div>
       <div class="kpi-grid" style="margin-bottom:0">
         ${kpi(fmtN(dangXL.length),'HS đang xử lý','chưa giải quyết','blue')}
@@ -4903,12 +5230,12 @@ function renderCLDV(s){
       </div>
     </div>
 
-    <!-- TRỤC 1: CHẤT LƯỢNG DỊCH VỤ -->
+    <!-- NHÓM GIẢI PHÁP 1: CHẤT LƯỢNG DỊCH VỤ -->
     <div style="background:linear-gradient(135deg,#fff7ed,#fff);border:2px solid #fb923c;border-radius:12px;padding:18px 20px;margin-bottom:20px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
         <span style="font-size:1.4rem">🎯</span>
         <div>
-          <div style="font-size:.72rem;font-weight:700;color:#ea580c;text-transform:uppercase;letter-spacing:.06em">TRỤC 1</div>
+          <div style="font-size:.72rem;font-weight:700;color:#ea580c;text-transform:uppercase;letter-spacing:.06em">NHÓM GIẢI PHÁP 1</div>
           <div style="font-size:1rem;font-weight:700;color:#1e293b">CHẤT LƯỢNG DỊCH VỤ</div>
         </div>
         <div style="margin-left:auto;text-align:right">
@@ -4934,12 +5261,12 @@ function renderCLDV(s){
       </div>
     </div>
 
-    <!-- TRỤC 2: HIỆU QUẢ & NĂNG SUẤT -->
+    <!-- NHÓM GIẢI PHÁP 2: HIỆU QUẢ & NĂNG SUẤT -->
     <div style="background:linear-gradient(135deg,#f0fdf4,#fff);border:2px solid #34d399;border-radius:12px;padding:18px 20px;margin-bottom:20px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
         <span style="font-size:1.4rem">⚡</span>
         <div>
-          <div style="font-size:.72rem;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.06em">TRỤC 2</div>
+          <div style="font-size:.72rem;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.06em">NHÓM GIẢI PHÁP 2</div>
           <div style="font-size:1rem;font-weight:700;color:#1e293b">HIỆU QUẢ & NĂNG SUẤT</div>
         </div>
         <div style="margin-left:auto;text-align:right">
@@ -4966,12 +5293,12 @@ function renderCLDV(s){
       </div>
     </div>
 
-    <!-- TRỤC 3: QUAN HỆ KHÁCH HÀNG -->
+    <!-- NHÓM GIẢI PHÁP 3: QUAN HỆ KHÁCH HÀNG -->
     <div style="background:linear-gradient(135deg,#eff6ff,#fff);border:2px solid #60a5fa;border-radius:12px;padding:18px 20px;margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
         <span style="font-size:1.4rem">🤝</span>
         <div>
-          <div style="font-size:.72rem;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:.06em">TRỤC 3</div>
+          <div style="font-size:.72rem;font-weight:700;color:#1565C0;text-transform:uppercase;letter-spacing:.06em">NHÓM GIẢI PHÁP 3</div>
           <div style="font-size:1rem;font-weight:700;color:#1e293b">QUAN HỆ KHÁCH HÀNG</div>
         </div>
         <div style="margin-left:auto;text-align:right">
@@ -4990,6 +5317,8 @@ function renderCLDV(s){
       </div>
     </div>
 
+    ${cldvActionSection(s)}
+
     <!-- KẾT LUẬN & MỤC TIÊU KẾ HOẠCH KỲ TỚI -->
     <div style="background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 45%,#4c1d95 100%);border-radius:14px;padding:22px 24px;margin-bottom:16px;color:#fff;box-shadow:0 6px 28px rgba(30,27,75,.25)">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
@@ -5000,7 +5329,7 @@ function renderCLDV(s){
         </div>
       </div>
       <div style="font-size:.82rem;line-height:1.65;color:rgba(255,255,255,.82);margin-bottom:18px;padding-left:44px">
-        Trên cơ sở phân tích ${fmtN(data.length)} hồ sơ với ${hl(fmtN(soTon)+' HS đang tồn','#fca5a5')}, trong đó ${hl(fmtN(so90)+' HS ≥90 ngày','#fca5a5')} và tiền BT còn treo ${hl(fmtMBC(tienTreo),'#fcd34d')}, định hướng cải tiến tập trung vào <b>3 trục: Chất lượng dịch vụ · Hiệu quả &amp; Năng suất · Quan hệ khách hàng</b>, cụ thể hóa thành lộ trình theo Tuần — Tháng — Quý dưới đây.
+        Trên cơ sở phân tích ${fmtN(data.length)} hồ sơ với ${hl(fmtN(soTon)+' HS đang tồn','#fca5a5')}, trong đó ${hl(fmtN(so90)+' HS ≥90 ngày','#fca5a5')} và tiền BT còn treo ${hl(fmtMBC(tienTreo),'#fcd34d')}, định hướng cải tiến tập trung vào <b>4 nhóm giải pháp: Chất lượng dịch vụ · Hiệu quả &amp; Năng suất · Quan hệ khách hàng · Liên thông số liệu từ tiến độ &amp; rủi ro</b>, cụ thể hóa thành lộ trình theo Tuần — Tháng — Quý dưới đây.
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
 
@@ -5015,6 +5344,8 @@ function renderCLDV(s){
             <li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#fb7185">▸</span>Mỗi GĐV rà soát danh sách tồn, cam kết đóng ${hl('≥1–2 HS','#fda4af')} quá hạn/tuần.</li>
             ${soGdvCo90>0?`<li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#fb7185">▸</span>${hl(soGdvCo90+' GĐV','#fda4af')} có HS ≥90 ngày báo cáo nguyên nhân &amp; kế hoạch xử lý.</li>`:``}
             <li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#fb7185">▸</span>Rà soát ${hl(fmtN(so4589)+' HS','#fda4af')} tồn 46–89 ngày, xử lý sớm trước khi chuyển sang nhóm ≥90 ngày.</li>
+            ${CY&&CY.idle30?`<li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#fb7185">▸</span>Chốt ${hl(fmtN(CY.idle30)+' HS đứng yên >30 ngày','#fda4af')} (tab Tiến độ, bảng 2): mỗi hồ sơ phải có mốc xử lý tiếp theo ghi rõ trong tuần.</li>`:``}
+            ${RK&&RK.hiCount?`<li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#fb7185">▸</span>Rà ${hl(fmtN(RK.hiCount)+' HS có dấu hiệu mức cao','#fda4af')} (tab Kiểm soát rủi ro) trước khi trình duyệt giá — đối chiếu quy tắc và hồ sơ gốc.</li>`:``}
           </ul>
         </div>
 
@@ -5029,6 +5360,7 @@ function renderCLDV(s){
             <li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#34d399">▸</span>Nâng tỷ lệ giải quyết từ ${tyLeGQ}% lên ${hl('≥'+mtThangGQ+'%','#6ee7b7')}.</li>
             ${gdvMax&&chenhLan?`<li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#34d399">▸</span>Cân bằng tải: kéo chênh lệch tồn giữa GĐV cao nhất (${gdvMax.ton} HS) và thấp nhất về ${hl('≤2 lần','#6ee7b7')} (hiện ${chenhLan} lần).</li>`:``}
             <li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#34d399">▸</span>Triển khai luồng fast-track cho ${hl(fmtN(btNho)+' HS','#6ee7b7')} giá trị nhỏ (<10 triệu).</li>
+            ${bn1?`<li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#34d399">▸</span>Rút chặng nghẽn số 1 — <b>${bn1.lab}</b> — từ ${bn1.avg.toFixed(1)} ngày về ${hl('≤'+bn1Tgt.toFixed(1)+' ngày','#6ee7b7')} (xem sáng kiến ở mục 4.1 bên trên).</li>`:``}
           </ul>
         </div>
 
@@ -5043,6 +5375,7 @@ function renderCLDV(s){
             <li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#60a5fa">▸</span>Giảm tiền BT còn treo ~40%: từ ${fmtMBC(tienTreo)} xuống ${hl('≤'+fmtMBC(mtQuyTreo),'#93c5fd')}.</li>
             <li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#60a5fa">▸</span>Xử lý dứt điểm toàn bộ ${hl(fmtN(so90)+' HS','#93c5fd')} tồn ≥90 ngày, đưa nhóm rủi ro cao nhất về ${hl('0 HS','#93c5fd')}.</li>
             <li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#60a5fa">▸</span>Hạ tỷ lệ tồn quá hạn (>45 ngày) từ ${tyLeQuaHan}% xuống ${hl('≤'+mtQuyQuaHanPct+'%','#93c5fd')} tổng hồ sơ đang tồn.</li>
+            ${cycMed>0?`<li style="padding-left:18px;position:relative"><span style="position:absolute;left:0;color:#60a5fa">▸</span>Đưa chu kỳ trung vị Mở HSBT → Duyệt BT từ ${cycMed.toFixed(0)} ngày về ${hl('≤'+cycTgt+' ngày','#93c5fd')} (giảm ~20%).</li>`:``}
           </ul>
         </div>
 

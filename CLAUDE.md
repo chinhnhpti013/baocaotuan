@@ -81,7 +81,7 @@ Cột quan trọng:
 | **Theo GĐV** | `tab-gdv` | **Bảng "TỔNG HỢP HỒ SƠ TỒN THEO GIÁM ĐỊNH VIÊN (NV XO)" giữ nguyên 100%** (4 hàng header, 18 cột) + **Thẻ điểm chu kỳ GĐV** (đã gộp thêm 3 cột giảm trừ) + bảng HS phát sinh theo tháng + 1 biểu đồ chu kỳ |
 | **Tiến độ & Hồ sơ tồn** | `tab-tiendo` | 1. Thời gian TB từng chặng (12 chặng) · 2. Hồ sơ tồn đang nghẽn ở bước nào · 3. **Danh sách hồ sơ tồn** (gộp BC2 + BC3 + Top 50 đứng yên) · 4. **Gara/Showroom** (gộp BC1 doanh thu + BC4 chất lượng phối hợp) · 5. Chất lượng dữ liệu khai báo |
 | **Kiểm soát rủi ro** | `tab-ruiro` | 1. Giảm trừ theo lý do · 2. Tổng hợp dấu hiệu cần rà soát · 3. DS hồ sơ cần rà soát (top 100) · 4. DS hồ sơ có giảm trừ (top 60) · 5. Tần suất tổn thất theo xe · 6. Khách hàng ≥5 hồ sơ · 7. Công nợ · 8. Tạm ứng chưa thu hồi. ⚠️ Mục 2–3 chỉ nêu **dấu hiệu cần rà soát**, không kết luận trục lợi — `.note-box` đầu tab **không được bỏ** |
-| **Đề xuất cải tiến CLDV** | `tab-cldv` | Giữ nguyên — 3 trục: Chất lượng dịch vụ · Hiệu quả & Năng suất · Quan hệ khách hàng; hàm `renderCLDV(s)` |
+| **Đề xuất cải tiến CLDV** | `tab-cldv` | 4 **nhóm giải pháp** (11/2026 đổi nhãn "Trục" → "Nhóm giải pháp" cho dễ hiểu): Chất lượng dịch vụ · Hiệu quả & Năng suất · Quan hệ khách hàng · **Liên thông số liệu** (`cldvActionSection(s)`) đặt ngay trước khối Kết luận; hàm `renderCLDV(s)` |
 | Tra cứu tiến trình | `tab-search` | **Không có nút tab** (11/2026) — vào từ menu thả xuống (`openSearchTab()`). Nội dung giữ nguyên: tra theo Biển kiểm soát / Số HSBT + lọc gara, GĐV, trạng thái; nút 📥 Tải Excel |
 | Tiện ích | `tab-tienich` | **Không có nút tab** — vào từ menu thả xuống (`openTienichTab()`). Bảng liên kết công cụ hỗ trợ giám định, dựng từ mảng `UTIL_LINKS` |
 
@@ -254,6 +254,24 @@ Các hàm `*Section(s)` **trả về chuỗi HTML** để hàm render của tab 
 Dòng chảy: 10 tháng đủ dữ liệu, PS 1.978 / duyệt BT 2.034 = **102,8%**, tồn lũy kế cuối kỳ 166 (đỉnh 290 ở T2/2026). Gara: **74/138 gara có ≥5 HS**, trong đó **27 gara** có dấu hiệu chậm, giữ **5,23 tỷ** tiền ước/duyệt; chậm báo giá nặng nhất là Garage Hoàng Anh Đông Triều (trung vị 47 ngày, 132 HS) và Garage Minh Tân Auto (50 ngày); chậm quyết toán: Garage auto Tiến Đạt 18 ngày, Vinfast Hạ Long 17, Ford Quảng Ninh 16,5. Tần suất: 416 xe ≥2 vụ (962 HS / 8,14 tỷ), 102 xe ≥3, 23 xe ≥4; 39 khách hàng ≥5 HS. Công nợ: 10 HS / 40 tr; tạm ứng chưa thu hồi 3 HS / 135 tr; cứu hộ 19 HS / 60 tr. Chất lượng dữ liệu: **93,8/100**.
 
 > **Thanh tab**: giai đoạn 8 nút phải nâng mốc xuống hàng lên 1400px; **từ khi gom còn 5 nút (11/2026) đã trả về 1150px**. Đo thật với 5 nút: 1878px và 1378px không cần co (khoảng hở tiêu đề↔tab 557px / 57px) · 1228px `tt-c1+c2` · ≤1150px topbar wrap. Mọi bề ngang `overflowX = 0`, không phải dùng `tt-scroll`.
+
+## Nhóm giải pháp 4 tab CLDV — liên thông số liệu từ tab Tiến độ & tab Kiểm soát rủi ro (11/2026)
+
+`cldvActionSection(s)` trả về chuỗi HTML, được `renderCLDV` nối vào `innerHTML` **ngay trước khối "Kết luận & Mục tiêu kế hoạch kỳ tới"**. Mục đích: 3 nhóm đầu đề xuất theo hướng chung, nhóm 4 lấy đúng kết quả **đã đo** ở 2 tab kia và gắn mỗi con số với *một việc làm — khâu chủ trì (Make/Check/Validate) — chỉ tiêu đo — kỳ hạn*.
+
+| Khối | Nguồn dữ liệu | Nội dung |
+|---|---|---|
+| KPI (8 ô) | `s.cycle`, `s.risk`, `computeGarageStats`, `computeDataQuality`, `computeDebtStats` | Nghẽn số 1/2 · HS đứng yên >30 ngày · gara chậm/tổng gara ≥5 HS · HS cần rà soát ngay · tiền tiết kiệm · công nợ · điểm tin cậy dữ liệu |
+| 4.1 Điểm nghẽn theo chặng | `s.cycle.legs` (top 6 theo TB) | Cột TB/Trung vị/Mốc nội bộ/Vượt mốc/% chu kỳ + **Sáng kiến** lấy từ `CLDV_LEG_FIX` (khoá = `lab` của chặng) + chỉ tiêu `Math.max(sla, avg×0,7)` |
+| 4.2 Tồn dừng ở bước nào | `s.cycle.flow` (top 6 theo số HS) | Kèm chip "Khâu phải xử lý tiếp" (`STAGE_NEXT`) + **Việc phải chốt** từ `CLDV_FLOW_FIX` (khoá = tên bước dừng) |
+| 4.3 Gara cần siết cam kết | `computeGarageStats().big` lọc `slow`, top 10 theo tiền | Hành động dựng bởi `cldvGaraAct(g)` — tự chèn trung vị báo giá/quyết toán và số HS tồn của chính gara đó nên mỗi dòng khác nhau |
+| 4.4 Sáng kiến rủi ro – công nợ – dữ liệu | `s.risk`, `computeDebtStats`, `computeRepeatStats`, `computeDataQuality` | Mảng `riskIdeas` dựng động: lý do giảm trừ lớn nhất · giảm trừ không ghi lý do · HS dấu hiệu mức cao · công nợ · tạm ứng · xe ≥4 vụ/khách ≥5 HS · 2 lỗi nhập liệu nặng nhất (bỏ mục `noScore`) |
+
+- **Không thêm biểu đồ** (tab CLDV vẫn đúng 6 chart): mọi số ở đây đã có biểu đồ tương ứng ở 2 tab nguồn, vẽ lại là lặp đúng theo nguyên tắc tối ưu 11/2026.
+- Dùng lại hệ bảng `.gdv-report-wrap` / `table.gdv` / `.own-badge` / `.flag-chip` của 2 tab kia; CSS nới ô ở dòng `#tab-tiendo … ,#tab-cldv table.gdv` + 2 rule riêng cho ô `td.left` (câu dài: `white-space:normal`, `vertical-align:top`).
+- Thêm tiêu chí mới cho một chặng / một bước dừng thì **phải thêm khoá vào `CLDV_LEG_FIX` / `CLDV_FLOW_FIX`**, nếu không ô sáng kiến rơi về câu mặc định.
+- Khối **Kết luận** cũng được nối thêm 4 mục mốc lấy từ `s.cycle`/`s.risk` (biến `CY`, `RK`, `bn1`, `bn1Tgt`, `cycMed`, `cycTgt`) — cố ý **chỉ đọc 2 trường đã tính sẵn trong `computeStats()`**, không gọi lại engine để khỏi thêm lượt duyệt mảng.
+- Đo thật (dữ liệu 10/2026 — 2.200 HS, as-of 29/10/2026): 4 bảng = 6 + 6 + 10 + 8 dòng; KPI ra đúng số của 2 tab nguồn (nghẽn 13,6 / 13,5 ngày · 50 HS đứng yên >30 ngày · 27/74 gara chậm giữ 5,231 tỷ · 80/296 HS dấu hiệu · công nợ 10 HS / 39,9 tr · 93,8/100). `pageOverflowX = 0` ở 1600 / 1280 px và ở 390px (bảng cuộn trong `.gdv-table-outer`), 0 lỗi JS.
 
 ## Trợ lý ảo GĐV (popup "💬 Trợ lý GĐV")
 
