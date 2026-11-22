@@ -58,6 +58,7 @@ Cột quan trọng:
 | `Mã nghiệp vụ` | `XO.1.x` (TNDS), `XO.4.x` (VCX) |
 | `Tiền ước/duyệt BT` | Số tiền bồi thường ước tính / đã duyệt |
 | `Biển số xe` | Biển kiểm soát xe |
+| `Mã kênh tổng` · `Mã kênh bán` · `Mã điểm bán` | Kênh khai thác của đơn (18 mã kênh tổng: SH · 00.GARAGE · NHK · VNPOST · KHONG_KENH_KT · DKPTI…). `Mã kênh tổng` là khoá ghép với sheet doanh thu theo kênh — xem mục "Engine Đợt 3" |
 | `Tên garage (thường gọi)` hoặc `Tên garage (ĐKKD)` | Tên gara/showroom sửa chữa — từ 06/2026 cột `Tên garage` cũ đã tách thành 2 cột này; báo cáo ưu tiên dùng `(thường gọi)`, fallback `(ĐKKD)` |
 | `Tiền BT đã trả cho KH` | Không còn khoảng trắng cuối tên cột (khác với file cũ) — code có fallback đọc cả 2 dạng |
 
@@ -79,7 +80,7 @@ Cột quan trọng:
 
 | Tab | ID | Mô tả |
 |-----|----|-------|
-| **Tổng quan** | `tab-dashboard` | Tab mặc định. Pane chứa **2 khối con**: `#pane-overview` (KPI · bảng + chart TLBT theo nghiệp vụ · **Dòng chảy hồ sơ theo tháng** · Infographic theo địa bàn) và `#dash-dyn` (**Phân tích đa chiều** 7 tiêu chí — chính là "Dashboard động" cũ). Giữ id `tab-dashboard` để toàn bộ CSS/JS của phần đa chiều không phải sửa. `renderOverview(s)` ghi vào `#pane-overview`, `renderDashboard(s)` ghi vào `#dash-dyn` |
+| **Tổng quan** | `tab-dashboard` | Tab mặc định. Pane chứa **2 khối con**: `#pane-overview` (KPI · bảng + chart TLBT theo nghiệp vụ · **Doanh thu & TLBT theo kênh khai thác** (Đợt 3) · **Dòng chảy hồ sơ theo tháng** · Infographic theo địa bàn) và `#dash-dyn` (**Phân tích đa chiều** 8 tiêu chí — chính là "Dashboard động" cũ). Giữ id `tab-dashboard` để toàn bộ CSS/JS của phần đa chiều không phải sửa. `renderOverview(s)` ghi vào `#pane-overview`, `renderDashboard(s)` ghi vào `#dash-dyn` |
 | **Theo GĐV** | `tab-gdv` | **Bảng "TỔNG HỢP HỒ SƠ TỒN THEO GIÁM ĐỊNH VIÊN (NV XO)" giữ nguyên 100%** (4 hàng header, 18 cột) + **Thẻ điểm chu kỳ GĐV** (đã gộp thêm 3 cột giảm trừ) + bảng HS phát sinh theo tháng + 1 biểu đồ chu kỳ |
 | **Tiến độ & Hồ sơ tồn** | `tab-tiendo` | 1. Thời gian TB từng chặng (12 chặng) · 2. Hồ sơ tồn đang nghẽn ở bước nào · 3. **Danh sách hồ sơ tồn** (gộp BC2 + BC3 + Top 50 đứng yên) · 4. **Gara/Showroom** (gộp BC1 doanh thu + BC4 chất lượng phối hợp) · 5. Chất lượng dữ liệu khai báo |
 | **Kiểm soát rủi ro** | `tab-ruiro` | 1. Giảm trừ theo lý do · 2. Tổng hợp dấu hiệu cần rà soát · 3. DS hồ sơ cần rà soát (top 100) · 4. DS hồ sơ có giảm trừ (top 60) · 5. Tần suất tổn thất theo xe · 6. Khách hàng ≥5 hồ sơ · 7. Công nợ · 8. Tạm ứng chưa thu hồi. ⚠️ Mục 2–3 chỉ nêu **dấu hiệu cần rà soát**, không kết luận trục lợi — `.note-box` đầu tab **không được bỏ** |
@@ -90,7 +91,7 @@ Cột quan trọng:
 > **Tối ưu hoá 11/2026 — từ 8 nút tab còn 5.** Nguyên tắc: mỗi đối tượng chỉ còn **một** bảng, biểu đồ nào lặp lại đúng nội dung bảng ngay cạnh thì bỏ.
 > - **Tab bị xoá**: `tab-overview` (nội dung chuyển vào `#pane-overview` trong tab Tổng quan) và `tab-baocao` (BC1→BC4 gộp thành `garageSection()`, BC2+BC3 gộp vào `tonListSection()`). Hàm `renderBaoCao()` **đã xoá hẳn**.
 > - **Bảng đã gộp**: gara (BC1 + BC4 → `garageSection`) · hồ sơ tồn (BC2 + BC3 + Top 50 đứng yên → `tonListSection`) · GĐV (bảng "giảm trừ theo GĐV" ở tab Kiểm soát rủi ro → 3 cột trong `gdvScorecard`).
-> - **Biểu đồ: 24 → 13.** Đã bỏ: `chart-bar-main`, `chart-donut-age` (Tổng quan — lặp tab Theo GĐV và tab CLDV); `chart-donut-gdv`, `chart-gdv-tyle`, `chart-gdv-nv`, `chart-gdv-aging`, `chart-gdv-leg` (Theo GĐV — lặp đúng các cột của 2 bảng ngay trên); `chart-stage-stuck` (Tiến độ — lặp bảng 2); `chart-gt-reason`, `chart-gt-gdv` (Rủi ro — lặp bảng 1 và bảng đã gộp vào thẻ điểm GĐV). Đã gộp `chart-flow-ps` + `chart-flow-ton` thành **1 chart** (2 cột + 1 đường tồn lũy kế, cùng trục vì cùng bậc độ lớn). **Tab CLDV giữ nguyên 6 chart.**
+> - **Biểu đồ: 24 → 13.** Đã bỏ: `chart-bar-main`, `chart-donut-age` (Tổng quan — lặp tab Theo GĐV và tab CLDV); `chart-donut-gdv`, `chart-gdv-tyle`, `chart-gdv-nv`, `chart-gdv-aging`, `chart-gdv-leg` (Theo GĐV — lặp đúng các cột của 2 bảng ngay trên); `chart-stage-stuck` (Tiến độ — lặp bảng 2); `chart-gt-reason`, `chart-gt-gdv` (Rủi ro — lặp bảng 1 và bảng đã gộp vào thẻ điểm GĐV). Đã gộp `chart-flow-ps` + `chart-flow-ton` thành **1 chart** (2 cột + 1 đường tồn lũy kế, cùng trục vì cùng bậc độ lớn). **Tab CLDV giữ nguyên 6 chart.** 11/2026 Đợt 3 thêm `chart-kenh-bt` → **14 chart**.
 > - **Thứ tự nút tab (5)**: Tổng quan → Theo GĐV → Tiến độ & Hồ sơ tồn → Kiểm soát rủi ro → Đề xuất cải tiến CLDV. Màu `.tabs .tab:nth-child(1..5)` = xanh dương · xanh lá · xám thép · đỏ đậm · hồng đỏ.
 > - ⚠️ Khi đổi thứ tự tab vẫn phải sửa đồng bộ **4 chỗ**: (1) thứ tự `<button class="tab">`, (2) thứ tự `<div id="tab-...">` kèm `style="display:none"`, (3) CSS `.tabs .tab:nth-child(n)` (đánh số theo **vị trí**), (4) mảng trong `switchTab()` — mảng này nay là `['dashboard','gdv','tiendo','ruiro','cldv','search','tienich']` và có guard `if(p)` vì 2 pane cuối không có nút.
 
@@ -119,6 +120,7 @@ Cột quan trọng:
 | `garage` | `Tên garage (thường gọi)`, fallback `(ĐKKD)` (~118 giá trị) | **12** + nhóm "Khác (N gara/showroom)" |
 | `trangthai` | `Trạng thái hồ sơ` (14 giá trị) | không |
 | `mucTien` | `Tiền ước/duyệt BT` → 4 khoảng tiền + nhóm chưa ước (`MONEY_BUCKETS`) | không — theo thứ tự `MONEY_BUCKETS` |
+| `kenh` | `Mã kênh tổng` (18 giá trị) | **12** + nhóm "Khác (N kênh khai thác)" |
 
 - `MONEY_BUCKETS` (dim `mucTien`, nút "💰 Số tiền bình quân/vụ"): Dưới 10 triệu · Từ 10 đến dưới 50 triệu · Từ 50 đến dưới 100 triệu · Từ 100 triệu trở lên · **Chưa có số tiền ước** (`na:true`, luôn xếp cuối). Ranh giới `min <= m < max`; `moneyBucketKey` đưa mọi giá trị **không > 0** (0, trống, `-`, chữ, số âm) về `MONEY_NA_KEY` **trước khi** dò khoảng — cố ý tách khỏi nhóm "Dưới 10 triệu" để bình quân/vụ của nhóm này không bị kéo tụt. Mỗi bucket có `short` riêng (`< 10 tr`, `10 – <50 tr`, `Chưa ước BT`, …) cho nhãn biểu đồ.
 - Bảng `mucTien` có 2 mức bình quân, không được nhầm: hàng **TỔNG** hiển thị `bqEst = t.bt / (t.total − nhóm NA)` (chỉ HS đã có tiền ước), còn `bqTong = t.bt / t.total` chỉ xuất hiện trong dòng chú thích dưới bảng để đối chiếu.
@@ -153,7 +155,7 @@ Cột quan trọng:
   - **Hai dòng cuối droplist không phải tiêu chí nhóm** (11/2026): `buildDashDimMenu()` nối thêm `data-d="search" class="dash-dd-go"` → `openSearchTab()` và `data-d="tienich"` → `openTienichTab()`, cả hai gọi `closeDashDD()` rồi `switchTab(..., dashTabBtn())`. Truyền `dashTabBtn()` vì `switchTab` cần một nút để gắn `.active`. CSS: vàng cam ở `.dash-dd [data-d="search"]`, indigo ở `.dash-dd [data-d="tienich"]`, vạch ngăn ở `.dash-dd-list button.dash-dd-go::before` (đặt ở mục Tra cứu — mục đầu của nhóm lối-vào). Hai mục này không bao giờ có dấu ✓ vì `DASH_DIM` không nhận các giá trị đó.
   - Hàm: `dashDDEl()`, `dashTabBtn()`, `dashDDOpen()`, `buildDashDimMenu()`, `positionDashDD()`, `openDashDD()`, `closeDashDD()`.
   - ⚠️ Kiểm thử bằng Chrome headless: `--virtual-time-budget` tua timer nhưng **không tua CSS transition**, nên ảnh chụp ngay sau khi mở menu ra khung trắng rỗng (opacity vẫn 0) dù DOM đã đủ 7 nút — chèn `*{transition:none!important}` vào bản test trước khi chụp. Biểu đồ vẽ trong `setTimeout` nên kịch bản test phải **chờ giữa các bước**; bấm liên tiếp trong cùng tick làm 2 lần vẽ chồng canvas và chart giữ nhãn cũ.
-- **Màu các mục "Xem theo"** (10/2026): mỗi tiêu chí 1 màu riêng gán theo `data-d` (gdv xanh dương · diaban xanh lá · nv tím · hangxe hổ phách · garage cyan · trangthai hồng · mucTien cam), qua 5 biến `--sg-bg1/--sg-bg2` (nền nhạt khi thường), `--sg-fg`, `--sg-d1/--sg-d2` (gradient khi `.active`), `--sg-sh` (bóng). Khai báo trên `.dash-dd [data-d="…"]` nên áp cho mọi mục trong menu. Gán theo `data-d` **không** theo `nth-child` — đổi thứ tự mục không làm lệch màu; thêm tiêu chí mới phải thêm 1 dòng biến tương ứng.
+- **Màu các mục "Xem theo"** (10/2026): mỗi tiêu chí 1 màu riêng gán theo `data-d` (gdv xanh dương · diaban xanh lá · nv tím · hangxe hổ phách · garage cyan · trangthai hồng · mucTien cam · kenh xanh lá chanh), qua 5 biến `--sg-bg1/--sg-bg2` (nền nhạt khi thường), `--sg-fg`, `--sg-d1/--sg-d2` (gradient khi `.active`), `--sg-sh` (bóng). Khai báo trên `.dash-dd [data-d="…"]` nên áp cho mọi mục trong menu. Gán theo `data-d` **không** theo `nth-child` — đổi thứ tự mục không làm lệch màu; thêm tiêu chí mới phải thêm 1 dòng biến tương ứng.
 - **Nền bảng chi tiết** (10/2026): `.dash-table-card` lấy đúng `background:#FAFAF5` + bóng của `.chart-card` để 4 khung trong tab cùng tông kem (trước đó là `--surface:#fff` của `.table-card`, lệch tông); `h3` cũng dùng viền dưới `2px var(--claude-light)` như chart-card. Hàng `tfoot` đổi `#f1f5f9` → `#eae4da` cho hợp nền kem.
 - **Dòng bảng chi tiết** (10/2026): sọc ngựa vằn `tbody tr:nth-child(even) td` nền `rgba(14,116,144,.055)`; hover `tbody tr:hover td` nền `rgba(34,211,238,.26)` + cột nhãn in đậm kèm vạch cyan `box-shadow:inset 3px 0 0 #0e7490` (dùng box-shadow vì `td:first-child` đã có `border-right` của lưới). ⚠️ Rule hover phải đặt **sau** rule ngựa vằn — hai rule cùng specificity, rule sau mới thắng; cả hai đều mạnh hơn `tr:hover td` chung nên không bị đè.
 - **Lưới kẻ bảng chi tiết** (09/2026): kẻ ngang + dọc cho mọi ô, màu `--grid:#cbd5e1`; viền ngoài khung, kẻ phải của **cột nhãn** và đường dưới `thead`/trên `tfoot` dùng `--grid-strong:#94a3b8` (2px, qua `box-shadow:inset` vì ô sticky). Dòng cuối `tbody:last-child` bỏ kẻ dưới để không chồng viền ngoài (bảng GĐV/Địa bàn/Nghiệp vụ/Trạng thái không có hàng TỔNG). Hai biến `--grid`/`--grid-strong` khai báo ngay trên `.dash-table-scroll`.
@@ -260,6 +262,59 @@ Các hàm `*Section(s)` **trả về chuỗi HTML** để hàm render của tab 
 Dòng chảy: 10 tháng đủ dữ liệu, PS 1.978 / duyệt BT 2.034 = **102,8%**, tồn lũy kế cuối kỳ 166 (đỉnh 290 ở T2/2026). Gara: **74/138 gara có ≥5 HS**, trong đó **27 gara** có dấu hiệu chậm, giữ **5,23 tỷ** tiền ước/duyệt; chậm báo giá nặng nhất là Garage Hoàng Anh Đông Triều (trung vị 47 ngày, 132 HS) và Garage Minh Tân Auto (50 ngày); chậm quyết toán: Garage auto Tiến Đạt 18 ngày, Vinfast Hạ Long 17, Ford Quảng Ninh 16,5. Tần suất: 416 xe ≥2 vụ (962 HS / 8,14 tỷ), 102 xe ≥3, 23 xe ≥4; 39 khách hàng ≥5 HS. Công nợ: 10 HS / 40 tr; tạm ứng chưa thu hồi 3 HS / 135 tr; cứu hộ 19 HS / 60 tr. Chất lượng dữ liệu: **93,8/100**.
 
 > **Thanh tab**: giai đoạn 8 nút phải nâng mốc xuống hàng lên 1400px; **từ khi gom còn 5 nút (11/2026) đã trả về 1150px**. Đo thật với 5 nút: 1878px và 1378px không cần co (khoảng hở tiêu đề↔tab 557px / 57px) · 1228px `tt-c1+c2` · ≤1150px topbar wrap. Mọi bề ngang `overflowX = 0`, không phải dùng `tt-scroll`.
+
+## Engine Đợt 3 — doanh thu & TLBT theo kênh khai thác (11/2026)
+
+Khối **"DOANH THU & TỶ LỆ BỒI THƯỜNG THEO KÊNH KHAI THÁC (MÃ KÊNH TỔNG)"** nằm trong tab **Tổng quan**, ngay sau bảng TLBT theo nghiệp vụ (`renderOverview` nối `kenhSection()` vào `#pane-overview`). Không thêm nút tab.
+
+| Thành phần | Vai trò |
+|---|---|
+| `GDRIVE_KENH_GID='1569610723'` | Sheet **DoanhthuKenh**, **cùng file Google Sheet** với dữ liệu hồ sơ (3 sheet: `XCG05_HSBT` · `ty-le-bt` · `DoanhthuKenh`) |
+| `loadKenhSheet()` | **Đường chính: CSV xuất bản** (`/d/e/${GDRIVE_PUB_ID}/pub?gid=…&output=csv`) — giống hệt cơ chế đọc dữ liệu hồ sơ |
+| `_kenhCSV(text)` | Tự tách CSV, **giữ mọi ô ở dạng chuỗi gốc**. ⚠ Không đưa qua `XLSX.read`: SheetJS đổi `"1,310,999"` thành số `1310999`, mất dấu hiệu phân biệt ô chữ với ô số |
+| `_loadKenhViaGviz()` · `window.ptiKenhCb` | Dự phòng JSONP gviz khi CSV xuất bản không dùng được (mở bằng `file://`, sheet chưa xuất bản) |
+| `_applyKenhRecs(recs,src)` | Gom theo `KENH_TONG`; nhận cùng một dạng mảng object (khoá = tên cột viết HOA) từ cả 2 đường đọc |
+| `KENH_COL` | Danh sách **tên cột** được chấp nhận — đọc theo header, **không dùng chỉ số cột** |
+| `kenhScale(vals)` · `kenhMoney(v,scale)` | Quy ô tiền về **đồng** — xem mục định dạng số bên dưới |
+| `kenhRevCheck()` · `KENH_TOL=0.10` | **Cửa kiểm soát**: so tổng `PHI_PS_LK` với doanh thu `XO` của sheet `ty-le-bt` |
+| `computeKenhStats()` | Ghép doanh thu với phía bồi thường gom theo `Mã kênh tổng` (dùng chung `parseTon`/`isResolved`/`parseMoney`) |
+| `kenhSection()` · `_refreshKenhSection()` | Dựng HTML + 1 chart `chart-kenh-bt`; vẽ lại khi **mỗi** sheet tải xong (`ptiTlbtCb` cũng gọi `_refreshKenhSection()`) |
+
+### ⚠️ Định dạng số của sheet DoanhthuKenh — đã đối chiếu 2.782/2.782 ô (22/11/2026)
+
+Bản xuất của hệ thống ghi số có **dấu phẩy phân nhóm nghìn** (`1,310,999`) — **giống sheet `XCG05_HSBT`**. File Google Sheet đang ở locale VN (phẩy = dấu thập phân) nên mỗi ô rơi vào 1 trong 3 dạng:
+
+| Chuỗi gốc | Google Sheet lưu thành | Đọc về đồng |
+|---|---|---|
+| `1,310,999` (≥2 nhóm phẩy → vô hiệu) | **CHỮ**, đủ chữ số | bỏ phẩy → `1310999` |
+| `437,000` (1 nhóm phẩy) | **SỐ** `437` (bị chia 1.000) | `437 × 1.000` |
+| `43,700` | **SỐ** `43,7` | `43,7 × 1.000` |
+| `131,101` | **SỐ** `131,101` | `131,101 × 1.000` |
+
+- Ô chữ **không mất chữ số nào** — chỉ **gviz** làm rỗng chúng: gviz gán kiểu cho cả cột theo số đông rồi trả `null` cho mọi ô lệch kiểu. Cột `PHI_PS_LK` có 1.445 ô số / **1.337 ô chữ** → đọc qua gviz mất 1.337 ô = **99,2% doanh thu** (tổng chỉ còn 253 tr/32,46 tỷ = 0,8%). ⚠️ **Đây chính là cái bẫy đã ghi ở mục "Vì sao không chỉ dùng gviz"** — áp dụng y nguyên cho sheet này, nên phải đọc bằng CSV xuất bản.
+- Hệ số ×1.000 xác định **theo cả cột** (`kenhScale`), không đoán từng ô: ô số của cột đều < 1.000 → cột đang bị chia 1.000. Sheet về sau được dán lại thành số đồng thật (max ≥ 1.000) thì hệ số **tự về 1**, không phải sửa code.
+- Ô 1 nhóm phẩy: ô chữ `131,101` và ô số `131,101` cho **cùng kết quả** (`131×1000 + 101`) nên không cần phân biệt.
+- Đã kiểm chéo bằng quan hệ **thuế = 10% phí** trên toàn bộ dòng: 230 ô nguyên mơ hồ (`437` có thể là 437 hay 437.000) **đều** khớp nhánh ×1.000, không ô nào khớp nhánh ×1.
+- ⚠️ **Phải bật xuất bản cho sheet này**: bản xuất bản hiện chỉ gồm `XCG05_HSBT` (`pub?gid=101924388` → 307, `pub?gid=1569610723` → **401**). Người dùng mở *Tệp ▸ Chia sẻ ▸ Xuất bản lên web ▸ **Toàn bộ tài liệu** ▸ CSV*. Không phải sửa dữ liệu trong sheet. Trang cũng phải chạy qua https (GitHub Pages) vì CSV xuất bản không cho `Origin: null` của `file://`.
+
+### ⚠️ Cửa kiểm soát doanh thu — đừng bỏ
+
+`showRev = rv.ok` (lệch ≤ `KENH_TOL` = 10% so với doanh thu XO của `ty-le-bt`). Không khớp → **cột Doanh thu / Tỷ trọng DT / TLBT để trống** + `.note-box` nêu đúng nguyên nhân theo đường đọc (`src==='gviz'` → hướng dẫn xuất bản sheet; `src==='pub'` → nhắc kiểm cột và kỳ số liệu); phía bồi thường vẫn hiện đủ. Không đối chiếu được (sheet `ty-le-bt` chưa tải) cũng **ẩn** — hiện số sai còn tệ hơn để trống. Lý do phải có cửa này: **cùng một sheet**, đọc qua gviz ra **0,8%** còn đọc qua CSV xuất bản ra **102,0%**.
+
+Ngưỡng 10% (không phải 5%): `PHI_PS_LK` = 33,119 tỷ còn "D.thu năm nghiệp vụ" của `ty-le-bt` = 32,464 tỷ → lệch **+2,0%** do khác mốc ghi nhận (`PHI_PS` 33,119 · `PHI_BH` 33,223 · `PHI_TT` 32,147 tỷ), không phải lỗi đọc.
+
+### Ghi chú nội dung
+
+- Sheet kênh là **dòng chi tiết cán bộ × mã nghiệp vụ** (2.782 dòng, 13 mã `KENH_TONG`), không phải bảng đã tổng hợp → báo cáo **tự gom về mã kênh tổng**; cột tiền dùng `PHI_PS_LK` (phí phát sinh lũy kế, **chưa VAT**). Dòng thiếu mã kênh vẫn vào nhóm `(Không xác định)` để tổng khớp; chỉ bỏ dòng rỗng hoàn toàn của CSV.
+- Bảng 12 cột: Mã kênh tổng · Tên kênh · Doanh thu phí LK · Tỷ trọng DT · Số HSBT · Tiền ước/duyệt BT · Tỷ trọng BT · TLBT % · Đã GQ · Đang tồn · Tồn ≥90 (+ `tfoot` TỔNG). Chart: có doanh thu → cột doanh thu + đường TLBT (`_buildDualNvBtChart`); chưa có → cột tiền BT + số HS (`buildBar`).
+- ⚠️ **TLBT ở bảng này = Tiền ước/duyệt BT ÷ Doanh thu phí lũy kế** → **số ước tính nội bộ**, cố ý khác TLBT chính thức của `ty-le-bt` (tính theo bồi thường thực trả năm nghiệp vụ): 60,3% so với 49,18%. Đã ghi rõ ở `gdv-report-footer`.
+- ⚠️ `KENH_NAME` **chỉ điền tên cho mã đã đối chiếu được** bằng cột `Mã kênh bán` của chính dữ liệu hồ sơ (NHK = RBSEA/RBVIB/RBVCB/OCVIETIN… → ngân hàng; SH = SH.TOYOTA/SH.FORD… → showroom). Mã chưa rõ (`DKPTI`, `HHI`, `KHCL`, `PTI.KTTT`, `CILC.H`, `KHNN`, `MWG`, mã số) **giữ nguyên mã, không đoán tên**; `title=` của ô mã liệt kê các mã kênh bán thuộc kênh đó.
+
+### Đo thật (dữ liệu 19/11/2026 — 2.334 HS · sheet kênh 2.782 dòng)
+
+Đọc qua CSV xuất bản: doanh thu **33,119 tỷ** (102,0% mốc `ty-le-bt`), tiền ước/duyệt BT **19,968 tỷ**, TLBT chung **60,3%**, 20 mã kênh (hợp của 2 nguồn). Theo kênh: 00.GARAGE DT 10,268 tỷ / BT 4,889 tỷ / **TLBT 47,6%** · SH 8,219 / 5,562 / **67,7%** · VNPOST 6,688 / 2,922 / **43,7%** · NHK 3,705 / 2,768 / **74,7%** · DKPTI 1,751 / 1,110 / **63,4%** · KHONG_KENH_KT 1,600 / 1,698 / **106,1%**. Đọc qua gviz: 0,8% → hiện cảnh báo, cột doanh thu/TLBT để trống, phía bồi thường vẫn đủ 2.334 HS. Cả 2 đường: **0 lỗi JS**, `pageOverflowX = 0` ở 1600/1280/1100/780/390px.
+
+> **Cách kiểm lại ô thật khi nghi số sai** (không cần trình duyệt): `curl -L "https://docs.google.com/spreadsheets/d/<ID>/export?format=xlsx" -o book.xlsx` rồi đọc `xl/worksheets/sheet3.xml` + `xl/sharedStrings.xml` bằng `zipfile` — ô `t="s"` là **chữ**, ô không có `t` là **số**. Đây là cách duy nhất thấy được ô nào là chữ, ô nào là số; `gviz` và CSV đều đã qua một lớp xử lý. `/export` chạy được bằng `curl` nhưng **không** dùng được trong trình duyệt (redirect 307 thiếu header CORS).
 
 ## Nhóm giải pháp 4 tab CLDV — liên thông số liệu từ tab Tiến độ & tab Kiểm soát rủi ro (11/2026)
 
@@ -372,7 +427,7 @@ Thay vì chỉ upload file, màn hình upload có 2 card song song:
 - ⚠️ **Vì sao không chỉ dùng gviz (09/2026)**: gviz tự đoán kiểu mỗi cột theo các hàng đầu; cột bị đoán là `number` sẽ trả `null` cho mọi ô dạng chữ (Sheet locale VN giữ `"2,619,000"` là chữ). Thực tế mất 1497/1914 ô `Tiền BT đã trả cho GR` + ô tiền ở `Tiền giảm trừ BT`, `Tiền chia sẻ rủi ro`, `Tiền cứu hộ`, `Tiền TƯ cho KH`, `Tiền BT đã trả cho KH` → KPI Đã chi trả hiện 39.340đ thay vì 15,2 tỷ. Các tham số `range`/`select` không ép được kiểu ổn định.
 - ⚠️ `raw:true` khi parse CSV là **bắt buộc** — không có nó SheetJS đổi `"11/09/2026"` thành ngày kiểu Mỹ (tháng/ngày đảo)
 - Không dùng `/export?format=csv`: dữ liệu đúng nhưng bước redirect 307 thiếu header CORS → trình duyệt chặn (đã thử Chrome headless từ file://)
-- Sheet đã bật **Tệp → Chia sẻ → Xuất bản lên web** (09/2026: sheet `XCG05_HSBT`, CSV, tự động xuất bản lại khi thay đổi). ID xuất bản lưu ở hằng `GDRIVE_PUB_ID` (`2PACX-…`), URL `https://docs.google.com/spreadsheets/d/e/${GDRIVE_PUB_ID}/pub?gid=${GDRIVE_GID}&single=true&output=csv`. Dạng `/d/${GDRIVE_FILE_ID}/pub?...` **không dùng được** (401). Nếu người dùng dừng xuất bản rồi xuất bản lại, ID `2PACX-` có thể đổi → phải cập nhật hằng này. Bản xuất bản có thể trễ vài phút so với Sheet.
+- Sheet đã bật **Tệp → Chia sẻ → Xuất bản lên web** (09/2026: sheet `XCG05_HSBT`, CSV, tự động xuất bản lại khi thay đổi). ID xuất bản lưu ở hằng `GDRIVE_PUB_ID` (`2PACX-…`), URL `https://docs.google.com/spreadsheets/d/e/${GDRIVE_PUB_ID}/pub?gid=${GDRIVE_GID}&single=true&output=csv`. Dạng `/d/${GDRIVE_FILE_ID}/pub?...` **không dùng được** (401). Nếu người dùng dừng xuất bản rồi xuất bản lại, ID `2PACX-` có thể đổi → phải cập nhật hằng này. ⚠️ Bản xuất bản hiện **chỉ gồm sheet `XCG05_HSBT`** nên `pub?gid=1569610723` (sheet `DoanhthuKenh`) trả **401** — khối Đợt 3 phải rơi về gviz và mất 99% doanh thu; cần chọn **Toàn bộ tài liệu** khi xuất bản (xem mục "Engine Đợt 3"). Bản xuất bản có thể trễ vài phút so với Sheet.
 - ⚠️ CSV xuất bản **chỉ tải được khi trang chạy qua http/https** (GitHub Pages `https://chinhnhpti013.github.io/xcg-dashboard/`): bước redirect 307 chỉ trả `Access-Control-Allow-Origin` cho Origin thật, không cho `Origin: null` của file:// → mở `index.html` trực tiếp trên máy sẽ rơi về gviz (có alert giải thích). Đã kiểm tra bằng Chrome headless cả 2 trường hợp.
 - ⚠️ URL gviz **bắt buộc** có `&headers=1` để gviz đọc hàng đầu làm tên cột (thiếu tham số này → cột trả về dạng A, B, C, toàn bộ số liệu = 0)
 - ⚠️ URL **bắt buộc** có `&_=${Date.now()}` để tránh browser cache: khi cập nhật file Drive mới, không có cache-buster sẽ vẫn tải dữ liệu cũ

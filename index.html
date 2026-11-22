@@ -416,6 +416,7 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 .dash-dd [data-d="garage"]   {--sg-bg1:#cffafe;--sg-bg2:#f0fdff;--sg-fg:#0e7490;--sg-d1:#22d3ee;--sg-d2:#0e7490;--sg-sh:rgba(14,116,144,.35)}
 .dash-dd [data-d="trangthai"]{--sg-bg1:#ffe4e6;--sg-bg2:#fff5f6;--sg-fg:#be123c;--sg-d1:#fb7185;--sg-d2:#be123c;--sg-sh:rgba(190,18,60,.35)}
 .dash-dd [data-d="mucTien"]  {--sg-bg1:#ffedd5;--sg-bg2:#fff7ed;--sg-fg:#c2410c;--sg-d1:#fb923c;--sg-d2:#c2410c;--sg-sh:rgba(194,65,12,.35)}
+.dash-dd [data-d="kenh"]     {--sg-bg1:#ecfccb;--sg-bg2:#f7fee7;--sg-fg:#4d7c0f;--sg-d1:#84cc16;--sg-d2:#4d7c0f;--sg-sh:rgba(77,124,15,.35)}
 /* Dòng cuối droplist KHÔNG phải tiêu chí nhóm: mở thẳng tab Tiện ích (giữ màu indigo của nút
    tab cũ), ngăn với 7 tiêu chí bằng một vạch mờ. */
 .dash-dd [data-d="tienich"]  {--sg-bg1:#e0e7ff;--sg-bg2:#f5f7ff;--sg-fg:#3730a3;--sg-d1:#818cf8;--sg-d2:#3730a3;--sg-sh:rgba(55,48,163,.35)}
@@ -1697,6 +1698,8 @@ window.ptiTlbtCb=function(resp){
     TLBT_DATA={curYear,prevYear:curYear-1,rows:data};
     // Re-render section nếu tab overview đang hiển thị
     _refreshNvBtSection();
+    // Khối "theo kênh" lấy doanh thu XO ở đây làm mốc đối chiếu → phải vẽ lại theo
+    _refreshKenhSection();
   }catch(e){console.error('TLBT parse',e);}
 };
 
@@ -1707,6 +1710,422 @@ function loadTlbtSheet(){
   const bust=`&_=${Date.now()}`;
   sc.src=`https://docs.google.com/spreadsheets/d/${GDRIVE_FILE_ID}/gviz/tq?tqx=out:json;callback:ptiTlbtCb&tq=select+*&sheet=${encodeURIComponent(GDRIVE_TLBT_SHEET)}&headers=0${bust}`;
   document.head.appendChild(sc);
+}
+
+/* ─── ĐỢT 3: DOANH THU & TLBT THEO KÊNH KHAI THÁC ────────────────────────────
+   Sheet **DoanhthuKenh** (gid 1569610723) nằm cùng file Google Sheet với dữ liệu hồ sơ.
+   Mỗi dòng sheet = 1 cán bộ quản lý × 1 mã nghiệp vụ, KHÔNG phải một dòng cho mỗi kênh
+   → báo cáo tự gom về MÃ KÊNH TỔNG (cột KENH_TONG), rồi ghép với phía bồi thường theo
+   cột "Mã kênh tổng" của Dulieu.xlsx.
+   ⚠ Đọc theo TÊN CỘT ở hàng header, không dùng chỉ số cột: loader cũ của sheet
+   ty-le-bt hardcode TLBT ở cột K (index 10) nên vỡ ngay khi hệ thống xuất thêm cột.
+
+   ĐỊNH DẠNG SỐ CỦA SHEET NÀY — xem `kenhMoney()`; giống sheet XCG05_HSBT (dấu phẩy
+   phân nhóm nghìn) nên phải đọc qua **CSV xuất bản**, không đọc qua gviz. */
+const GDRIVE_KENH_GID='1569610723';
+// Tên cột được chấp nhận (viết HOA) — thêm biến thể mới vào đây
+const KENH_COL={
+  code:['KENH_TONG','MA_KENH_TONG','MÃ KÊNH TỔNG'],
+  phi :['PHI_PS_LK','PHI_PS','PHI_BH_LK','DOANH THU','PHI'],
+  thue:['THUE_PS_LK','THUE_PS','THUE_BH_LK','THUE'],
+  nv  :['LH_NV','MA_NGHIEP_VU','MÃ NGHIỆP VỤ']
+};
+/* Tên gọi tiếng Việt — CHỈ ghi những mã đã đối chiếu được bằng cột "Mã kênh bán"
+   trong chính dữ liệu hồ sơ (vd NHK gồm RBSEA/RBVIB/RBVCB/OCVIETIN… = các ngân hàng).
+   Mã chưa xác định chắc chắn thì để nguyên mã, KHÔNG đoán tên. */
+const KENH_NAME={
+  'SH':'Showroom / hãng xe',
+  '00.GARAGE':'Gara (liên kết & không liên kết)',
+  'NHK':'Ngân hàng (bancassurance)',
+  'VNPOST':'Bưu điện Việt Nam',
+  'TCTC':'Tổ chức tín dụng',
+  'TELE':'Telesales',
+  'DAUTHAU':'Đấu thầu',
+  'KHONG_KENH_KT':'Không qua kênh khai thác',
+  'KHONG_KENH_KTHAC':'Không qua kênh khai thác (khác)'
+};
+let KENH_DATA=null;   // {map:{code:{phi,thue,n}}, total, nrow, blank, src, scale}
+
+/* ── ĐỊNH DẠNG SỐ CỦA SHEET DoanhthuKenh (đã đối chiếu 2.782/2.782 ô ngày 22/11/2026) ──
+   Bản xuất của hệ thống ghi số có **dấu phẩy phân nhóm nghìn**: "1,310,999" — giống
+   hệt sheet XCG05_HSBT. File Google Sheet đang ở locale VN (phẩy = dấu thập phân) nên
+   khi dán vào, mỗi ô rơi vào 1 trong 3 dạng:
+
+   | Chuỗi gốc    | Google Sheet lưu thành        | Đọc về đồng          |
+   |--------------|-------------------------------|----------------------|
+   | "1,310,999"  | CHỮ (≥2 nhóm phẩy → vô hiệu)  | bỏ phẩy → 1310999    |
+   | "437,000"    | SỐ 437      (bị chia 1.000)   | 437 × 1.000          |
+   | "43,700"     | SỐ 43,7     (bị chia 1.000)   | 43,7 × 1.000         |
+   | "131,101"    | SỐ 131,101  (bị chia 1.000)   | 131,101 × 1.000      |
+
+   Hai điểm phải nhớ:
+   · Ô CHỮ **không mất chữ số nào** — chỉ gviz làm rỗng chúng (gviz gán kiểu cho cả
+     cột theo số đông rồi trả null cho ô lệch kiểu; cột PHI_PS_LK có 1.445 ô số /
+     1.337 ô chữ → mất sạch 1.337 ô chữ = 99,2% doanh thu). Vì vậy sheet này phải đọc
+     bằng **CSV xuất bản** như sheet XCG05_HSBT; gviz chỉ là đường dự phòng.
+   · Hệ số ×1.000 của ô SỐ được xác định **theo cả cột** (`kenhScale`) chứ không đoán
+     từng ô: ô số của cột đều < 1.000 nghĩa là cột đang bị chia 1.000. Nếu sau này
+     sheet được dán lại thành số đồng thật (max ≥ 1.000) thì hệ số tự về 1 — không
+     phải sửa code.
+   Đã kiểm chéo bằng quan hệ thuế = 10% phí trên toàn bộ dòng: 230 ô nguyên mơ hồ
+   ("437" có thể là 437 hay 437.000) đều khớp nhánh ×1.000, không ô nào khớp nhánh ×1. */
+function kenhScale(vals){
+  let mx=0;
+  vals.forEach(v=>{
+    let n=null;
+    if(typeof v==='number')n=Math.abs(v);
+    else{const s=String(v==null?'':v).replace(/[^\d.,-]/g,'');
+         if(s&&s.indexOf(',')<0&&s.indexOf('.')<0)n=Math.abs(parseInt(s,10));}
+    if(n!==null&&isFinite(n)&&n>mx)mx=n;
+  });
+  return (mx>0&&mx<1000)?1000:1;     // ô số đều < 1.000 → cột đang bị chia 1.000
+}
+function kenhMoney(v,scale){
+  const k=scale||1;
+  if(v===null||v===undefined||v==='')return 0;
+  if(typeof v==='number')return isFinite(v)?v*k:0;
+  let s=String(v).trim();
+  if(!s||s==='-')return 0;
+  const neg=/^-/.test(s);
+  s=s.replace(/[^\d.,]/g,'');
+  if(!s)return 0;
+  const sep=s.indexOf(',')>=0?',':(s.indexOf('.')>=0?'.':'');
+  let d;
+  if(!sep){
+    d=parseInt(s,10)*k;                                   // ô số dạng nguyên
+  }else{
+    const g=s.split(sep);
+    d=(g.length>=3)
+      ? parseInt(g.join(''),10)                           // ô chữ "1,310,999"
+      : parseInt(g[0],10)*1000+parseInt((g[1]+'000').slice(0,3),10);
+      // 1 nhóm: ô chữ "131,101" và ô số 131,101 cho cùng kết quả → không cần phân biệt
+  }
+  if(!isFinite(d))return 0;
+  return neg?-d:d;
+}
+
+/* Gom các dòng của sheet (đã chuẩn hoá thành mảng object khoá là TÊN CỘT viết HOA) */
+function _applyKenhRecs(recs,src){
+  if(!recs||!recs.length){
+    KENH_DATA={map:{},total:0,nrow:0,blank:0,src,err:'Sheet rỗng'};
+    _refreshKenhSection();return;
+  }
+  const keys=Object.keys(recs[0]);
+  const find=names=>{for(let i=0;i<names.length;i++){if(keys.indexOf(names[i])>=0)return names[i];}return '';};
+  const kCode=find(KENH_COL.code),kPhi=find(KENH_COL.phi),kThue=find(KENH_COL.thue);
+  if(!kCode||!kPhi){
+    KENH_DATA={map:{},total:0,nrow:0,blank:0,src,
+      err:'Không thấy cột KENH_TONG / PHI_PS_LK ở hàng header'};
+    _refreshKenhSection();return;
+  }
+  const scale=kenhScale(recs.map(r=>r[kPhi]));
+  const map={};let total=0,nrow=0,blank=0;
+  recs.forEach(r=>{
+    const code=String(r[kCode]==null?'':r[kCode]).trim();
+    const phi=kenhMoney(r[kPhi],scale),thue=kThue?kenhMoney(r[kThue],scale):0;
+    if(!code&&!phi&&!thue)return;                 // dòng rỗng cuối file CSV
+    nrow++;
+    if(!phi&&!thue)blank++;
+    // Dòng thiếu mã kênh vẫn phải tính vào tổng → gom cùng nhóm với phía bồi thường
+    const key=code||'(Không xác định)';
+    const a=map[key]||(map[key]={code:key,phi:0,thue:0,n:0});
+    a.phi+=phi;a.thue+=thue;a.n++;total+=phi;
+  });
+  KENH_DATA={map,total,nrow,blank,src,scale,col:kPhi};
+  _refreshKenhSection();
+}
+
+/* Tách CSV thành mảng chuỗi — mọi ô giữ nguyên dạng chữ như sheet hiển thị */
+function _kenhCSV(text){
+  const rows=[];let row=[],cur='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; }
+      else cur+=c;
+    }else if(c==='"')q=true;
+    else if(c===','){row.push(cur);cur='';}
+    else if(c==='\n'){row.push(cur);rows.push(row);row=[];cur='';}
+    else if(c!=='\r')cur+=c;
+  }
+  if(cur!==''||row.length){row.push(cur);rows.push(row);}
+  return rows;
+}
+
+/* Đường chính: CSV xuất bản (giữ nguyên ô chữ) — cùng cơ chế với dữ liệu hồ sơ.
+   Chỉ chạy được khi trang mở qua http/https VÀ sheet đã nằm trong bản xuất bản. */
+function loadKenhSheet(){
+  const url=`https://docs.google.com/spreadsheets/d/e/${GDRIVE_PUB_ID}/pub?gid=${GDRIVE_KENH_GID}`+
+            `&single=true&output=csv&_=${Date.now()}`;
+  let done=false;
+  const fallback=why=>{if(done)return;done=true;_loadKenhViaGviz(why);};
+  try{
+    fetch(url,{cache:'no-store'}).then(r=>{
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return r.text();
+    }).then(text=>{
+      if(done)return;
+      if(!text||/^\s*</.test(text))throw new Error('không phải CSV');
+      /* ⚠ Tự tách CSV, KHÔNG đưa qua XLSX.read: SheetJS đổi "1,310,999" thành số
+         1310999, mất dấu hiệu phân biệt ô CHỮ (đã là đồng) với ô SỐ (đang bị Google
+         Sheet chia 1.000) — xem bảng định dạng ở kenhMoney(). Giữ nguyên chuỗi gốc
+         thì 2 nhánh đó phân biệt được chắc chắn. */
+      const rows=_kenhCSV(text);
+      if(rows.length<2)throw new Error('CSV chỉ có '+rows.length+' dòng');
+      const hd=(rows[0]||[]).map(x=>String(x||'').trim().toUpperCase());
+      const recs=rows.slice(1).map(r=>{const o={};hd.forEach((k,n)=>{if(k)o[k]=r[n]===undefined?'':r[n];});return o;});
+      done=true;_applyKenhRecs(recs,'pub');
+    }).catch(e=>fallback(String(e&&e.message||e)));
+  }catch(e){fallback(String(e&&e.message||e));}
+}
+
+/* Dự phòng: gviz JSONP. ⚠ Với sheet này gviz **mất toàn bộ ô dạng chữ** nên tổng phí
+   chỉ còn ~0,8% — cửa kiểm soát sẽ chặn, kèm hướng dẫn xuất bản sheet. */
+function _loadKenhViaGviz(why){
+  window.__kenhPubErr=why||'';
+  const old=document.getElementById('_kenh_script');if(old)old.remove();
+  const sc=document.createElement('script');
+  sc.id='_kenh_script';
+  sc.src=`https://docs.google.com/spreadsheets/d/${GDRIVE_FILE_ID}/gviz/tq?tqx=out:json;callback:ptiKenhCb`+
+         `&tq=select+*&gid=${GDRIVE_KENH_GID}&headers=1&_=${Date.now()}`;
+  sc.onerror=function(){
+    KENH_DATA={map:{},total:0,nrow:0,blank:0,src:'gviz',
+      err:'Không tải được sheet (kiểm tra quyền chia sẻ file)'};
+    _refreshKenhSection();
+  };
+  document.head.appendChild(sc);
+}
+
+window.ptiKenhCb=function(resp){
+  try{
+    const tb=resp&&resp.table;
+    if(!tb||!tb.rows){_applyKenhRecs([],'gviz');return;}
+    const labels=(tb.cols||[]).map(c=>String(c.label||'').trim().toUpperCase());
+    const recs=[];
+    tb.rows.forEach(row=>{
+      if(!row.c)return;
+      const o={};
+      labels.forEach((lb,i)=>{const c=row.c[i];o[lb]=(c&&c.v!==null&&c.v!==undefined)?c.v:'';});
+      recs.push(o);
+    });
+    _applyKenhRecs(recs,'gviz');
+  }catch(e){
+    console.error('KENH parse',e);
+    KENH_DATA={map:{},total:0,nrow:0,blank:0,src:'gviz',err:'Lỗi đọc sheet'};
+    _refreshKenhSection();
+  }
+};
+
+/* Đối chiếu tổng phí của sheet kênh với doanh thu XO của sheet ty-le-bt.
+   ⚠ Bắt buộc có bước này: cùng một sheet, đọc qua gviz ra 0,8% còn đọc qua CSV xuất bản
+   ra 102% — không có mốc đối chiếu thì bảng vẫn "có số" mà sai cả trăm lần.
+   Ngưỡng ±10%: phí phát sinh lũy kế (PHI_PS_LK) và "D.thu năm nghiệp vụ" của sheet
+   ty-le-bt lệch nhau ~2% do khác mốc ghi nhận (PS / BH / TT), không phải lỗi đọc. */
+const KENH_TOL=0.10;
+function kenhRevCheck(){
+  const auth=(TLBT_DATA&&TLBT_DATA.rows||[]).filter(r=>r.code==='XO')[0];
+  const authTotal=auth?auth.curDThu:0;
+  const total=KENH_DATA?KENH_DATA.total:0;
+  const cover=authTotal>0?total/authTotal:0;
+  return{
+    loaded:!!KENH_DATA,err:KENH_DATA?KENH_DATA.err:'',
+    src:KENH_DATA?KENH_DATA.src:'',scale:KENH_DATA?KENH_DATA.scale:1,
+    col:KENH_DATA?KENH_DATA.col:'',
+    total,authTotal,cover,
+    blank:KENH_DATA?KENH_DATA.blank:0,nrow:KENH_DATA?KENH_DATA.nrow:0,
+    ok:!!(total>0&&authTotal>0&&Math.abs(cover-1)<=KENH_TOL),
+    unverified:!!(total>0&&authTotal<=0)
+  };
+}
+
+/* Gom phía bồi thường theo "Mã kênh tổng" rồi ghép doanh thu của sheet kênh.
+   Quy ước tồn / đã giải quyết dùng chung parseTon + isResolved — không định nghĩa lại. */
+function computeKenhStats(){
+  const rows=Array.isArray(RAW)?RAW:[];
+  const rv=kenhRevCheck();
+  const rev=(KENH_DATA&&KENH_DATA.map)||{};
+  const map={};
+  const get=k=>map[k]||(map[k]={code:k,n:0,bt:0,daGQ:0,ton:0,t45:0,t90:0,phi:0,thue:0,ban:{}});
+  rows.forEach(r=>{
+    const a=get(normDimVal(r['Mã kênh tổng']));
+    a.n++;
+    a.bt+=parseMoney(r['Tiền ước/duyệt BT']);
+    if(isResolved(r))a.daGQ++;
+    else{const t=parseTon(r['Số ngày tồn']);if(t){a.ton++;if(t>45)a.t45++;if(t>=90)a.t90++;}}
+    const kb=String(r['Mã kênh bán']||'').trim();
+    if(kb&&kb!=='-')a.ban[kb]=(a.ban[kb]||0)+1;
+  });
+  Object.keys(rev).forEach(k=>{const a=get(normDimVal(k));a.phi+=rev[k].phi;a.thue+=rev[k].thue;});
+  const list=Object.keys(map).map(k=>{
+    const a=map[k];
+    a.name=KENH_NAME[a.code]||'';
+    a.topBan=Object.keys(a.ban).sort((x,y)=>a.ban[y]-a.ban[x]).slice(0,6)
+      .map(b=>b+' ('+a.ban[b]+')').join(', ');
+    a.tlbt=(rv.ok&&a.phi>0)?a.bt/a.phi*100:null;
+    a.tyGQ=a.n>0?Math.round(a.daGQ/a.n*1000)/10:0;
+    return a;
+  });
+  list.sort((a,b)=>rv.ok?((b.phi-a.phi)||(b.bt-a.bt)):(b.bt-a.bt));
+  const T={n:0,bt:0,daGQ:0,ton:0,t45:0,t90:0,phi:0};
+  list.forEach(a=>{T.n+=a.n;T.bt+=a.bt;T.daGQ+=a.daGQ;T.ton+=a.ton;T.t45+=a.t45;T.t90+=a.t90;T.phi+=a.phi;});
+  T.tlbt=(rv.ok&&T.phi>0)?T.bt/T.phi*100:null;
+  T.tyGQ=T.n>0?Math.round(T.daGQ/T.n*1000)/10:0;
+  return{list,T,rv};
+}
+
+function kenhSection(){
+  const k=computeKenhStats();
+  const rv=k.rv,list=k.list,T=k.T;
+  const cy=(TLBT_DATA&&TLBT_DATA.curYear)||new Date().getFullYear();
+  /* Chỉ hiện doanh thu/TLBT khi đã đối chiếu khớp với sheet ty-le-bt. Không đối chiếu
+     được (sheet ty-le-bt chưa tải) thì cũng ẩn — hiện số sai còn tệ hơn là để trống. */
+  const showRev=rv.ok;
+  const clsTlbt=v=>v==null?'':(v>=60?'hl-red':v>=40?'hl-amber':'hl-green');
+
+  // Biểu đồ: có doanh thu tin cậy → cột doanh thu + đường TLBT; chưa có → cột tiền bồi thường
+  const top=list.filter(a=>showRev?a.phi>0:a.bt>0).slice(0,9);
+  setTimeout(function(){
+    if(typeof Chart==='undefined')return;
+    const old=Chart.getChart('chart-kenh-bt');if(old)old.destroy();
+    if(!document.getElementById('chart-kenh-bt'))return;
+    const labels=top.map(a=>a.code.length>14?a.code.slice(0,13)+'…':a.code);
+    if(showRev){
+      _buildDualNvBtChart('chart-kenh-bt',labels,
+        top.map(a=>Math.round(a.phi/1e6)),
+        top.map(a=>a.tlbt==null?0:Math.round(a.tlbt*100)/100),cy);
+    }else{
+      buildBar('chart-kenh-bt',labels,[
+        {label:'Tiền ước/duyệt BT (triệu đ)',data:top.map(a=>Math.round(a.bt/1e6)),backgroundColor:'#fb7185'},
+        {label:'Số hồ sơ',data:top.map(a=>a.n),backgroundColor:'#60a5fa'}
+      ]);
+    }
+  },10);
+
+  const rows=list.map(function(a,i){
+    const dtTrong=T.phi>0?Math.round(a.phi/T.phi*1000)/10:0;
+    const btTrong=T.bt>0?Math.round(a.bt/T.bt*1000)/10:0;
+    return'<tr'+(a.code==='(Không xác định)'?' style="color:#64748b;font-style:italic"':'')+'>'+
+      '<td>'+(i+1)+'</td>'+
+      '<td class="left" style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#0f766e"'+
+        (a.topBan?' title="Mã kênh bán trong kỳ: '+a.topBan.replace(/"/g,'')+'"':'')+'>'+a.code+'</td>'+
+      '<td class="left">'+(a.name||'<span style="color:#94a3b8">—</span>')+'</td>'+
+      '<td class="num">'+(showRev&&a.phi>0?fmtMBC(a.phi):'<span style="color:#94a3b8">—</span>')+'</td>'+
+      '<td>'+(showRev&&a.phi>0?dtTrong.toFixed(1)+'%':'–')+'</td>'+
+      '<td><b>'+fmtN(a.n)+'</b></td>'+
+      '<td class="num">'+fmtMBC(a.bt)+'</td>'+
+      '<td>'+btTrong.toFixed(1)+'%</td>'+
+      '<td class="pct '+clsTlbt(a.tlbt)+'">'+(a.tlbt==null?'–':a.tlbt.toFixed(1)+'%')+'</td>'+
+      '<td class="hl-green">'+fmtN(a.daGQ)+'</td>'+
+      '<td>'+(a.ton?fmtN(a.ton):'–')+'</td>'+
+      '<td class="'+(a.t90?'hl-red':'')+'">'+(a.t90?fmtN(a.t90):'–')+'</td>'+
+    '</tr>';
+  }).join('');
+
+  // Khung cảnh báo khi số liệu doanh thu chưa dùng được
+  let note='';
+  if(!rv.loaded){
+    note='<div class="note-box info">⏳ Đang tải sheet doanh thu theo kênh (gid '+GDRIVE_KENH_GID+')…</div>';
+  }else if(rv.err){
+    note='<div class="note-box">⚠ <b>Chưa đọc được doanh thu theo kênh:</b> '+rv.err+
+      '. Bảng dưới chỉ hiện số liệu phía bồi thường.</div>';
+  }else if(!rv.ok&&!rv.unverified){
+    const viaGviz=rv.src==='gviz';
+    note='<div class="note-box">⚠ <b>Doanh thu theo kênh chưa dùng được.</b> '+
+      'Đọc '+fmtN(rv.nrow)+' dòng, tổng phí <b>'+fmtMBC(rv.total)+'</b> so với doanh thu XO năm '+cy+
+      ' của sheet <em>ty-le-bt</em> là <b>'+fmtMBC(rv.authTotal)+'</b> — đạt <b>'+
+      (rv.cover*100).toFixed(1)+'%</b>, lệch quá ngưỡng '+Math.round(KENH_TOL*100)+'% nên cột doanh thu/TLBT để trống.'+
+      (viaGviz
+        ?' Đang phải đọc qua <b>gviz</b> (CSV xuất bản không dùng được'+
+         (window.__kenhPubErr?': '+String(window.__kenhPubErr).slice(0,60):'')+
+         '). Sheet <b>DoanhthuKenh</b> ghi số kiểu "1,310,999" nên Google Sheet lưu phần lớn ô dưới dạng <b>chữ</b>, '+
+         'mà gviz gán kiểu cho cả cột theo số đông rồi <b>trả rỗng mọi ô lệch kiểu</b> → mất '+fmtN(rv.blank)+
+         ' dòng (~99% doanh thu). <b>Cách mở:</b> trong file Google Sheet chọn '+
+         '<em>Tệp ▸ Chia sẻ ▸ Xuất bản lên web</em> → mục nội dung chọn <b>Toàn bộ tài liệu</b> '+
+         '(hoặc thêm sheet <b>DoanhthuKenh</b>), định dạng <b>CSV</b> → Xuất bản. '+
+         'Không phải sửa dữ liệu trong sheet, cũng không phải chỉnh code. '+
+         'Lưu ý trang phải mở qua https (GitHub Pages) mới tải được CSV xuất bản — mở file trên máy luôn rơi về gviz.'
+        :' Đọc qua CSV xuất bản nhưng tổng vẫn lệch: kiểm lại cột <b>'+(rv.col||'PHI_PS_LK')+
+         '</b> và mốc doanh thu ở sheet <em>ty-le-bt</em> (có thể sheet kênh và sheet ty-le-bt khác kỳ số liệu).')+
+      '</div>';
+  }else if(rv.unverified){
+    note='<div class="note-box info">ℹ Đọc được '+fmtMBC(rv.total)+' doanh thu phí nhưng '+
+      '<b>chưa đối chiếu được với sheet <em>ty-le-bt</em></b> (sheet đó chưa tải xong) nên cột doanh thu/TLBT '+
+      'tạm để trống — tải lại trang để lấy cả 2 sheet.</div>';
+  }else if(rv.src==='gviz'){
+    note='<div class="note-box info">ℹ Số liệu đọc qua <b>gviz</b> (không phải CSV xuất bản) nhưng tổng phí '+
+      'khớp mốc sheet <em>ty-le-bt</em> ('+(rv.cover*100).toFixed(1)+'%) nên vẫn dùng.</div>';
+  }
+
+  const period=showRev
+    ?'Doanh thu phí lũy kế '+fmtMBC(T.phi)+' · Tiền ước/duyệt BT '+fmtMBC(T.bt)+
+     ' · TLBT chung '+(T.tlbt==null?'–':T.tlbt.toFixed(1)+'%')+' · '+fmtN(list.length)+' kênh tổng'
+    :'Tiền ước/duyệt BT '+fmtMBC(T.bt)+' trên '+fmtN(T.n)+' hồ sơ · '+fmtN(list.length)+
+     ' kênh tổng · doanh thu phí chưa dùng được';
+
+  return''+
+  '<div id="kenh-bt-section" class="gdv-report-wrap" style="margin-top:24px;margin-bottom:20px">'+
+    '<div class="gdv-report-header" style="background:linear-gradient(135deg,#0f766e,#14b8a6 60%,#115e59)">'+
+      '<div class="title">DOANH THU &amp; TỶ LỆ BỒI THƯỜNG THEO KÊNH KHAI THÁC (MÃ KÊNH TỔNG)</div>'+
+      '<div class="period">'+period+'</div>'+
+    '</div>'+
+    (note?'<div style="padding:14px 16px 0">'+note+'</div>':'')+
+    '<div class="gdv-table-outer">'+
+      '<table class="gdv" style="min-width:1040px">'+
+        '<thead><tr>'+
+          '<th style="width:40px">Stt</th>'+
+          '<th class="lv2" style="width:130px;text-align:left">Mã kênh tổng</th>'+
+          '<th class="lv2" style="width:170px;text-align:left">Tên kênh</th>'+
+          '<th class="lv3" style="width:118px">Doanh thu phí LK</th>'+
+          '<th class="lv3" style="width:80px">Tỷ trọng DT</th>'+
+          '<th class="lv2" style="width:80px">Số HSBT</th>'+
+          '<th class="lv2" style="width:118px">Tiền ước/duyệt BT</th>'+
+          '<th class="lv2" style="width:80px">Tỷ trọng BT</th>'+
+          '<th class="lv3" style="width:86px">TLBT (%)</th>'+
+          '<th class="lv2" style="width:78px">Đã GQ</th>'+
+          '<th class="lv2" style="width:70px">Đang tồn</th>'+
+          '<th class="lv3" style="width:80px">Tồn ≥90</th>'+
+        '</tr></thead>'+
+        '<tbody>'+rows+'</tbody>'+
+        '<tfoot><tr>'+
+          '<td colspan="3" class="left"><b>TỔNG CỘNG</b></td>'+
+          '<td class="num"><b>'+(showRev&&T.phi>0?fmtMBC(T.phi):'—')+'</b></td>'+
+          '<td><b>'+(showRev&&T.phi>0?'100%':'–')+'</b></td>'+
+          '<td><b>'+fmtN(T.n)+'</b></td>'+
+          '<td class="num"><b>'+fmtMBC(T.bt)+'</b></td>'+
+          '<td><b>100%</b></td>'+
+          '<td class="pct '+clsTlbt(T.tlbt)+'"><b>'+(T.tlbt==null?'–':T.tlbt.toFixed(1)+'%')+'</b></td>'+
+          '<td class="hl-green"><b>'+fmtN(T.daGQ)+'</b></td>'+
+          '<td><b>'+fmtN(T.ton)+'</b></td>'+
+          '<td class="'+(T.t90?'hl-red':'')+'"><b>'+fmtN(T.t90)+'</b></td>'+
+        '</tr></tfoot>'+
+      '</table>'+
+    '</div>'+
+    '<div class="gdv-report-footer">'+
+      'Doanh thu lấy từ sheet <b>DoanhthuKenh</b> (gid '+GDRIVE_KENH_GID+'), cột <b>'+(rv.col||'PHI_PS_LK')+
+      '</b> (phí phát sinh lũy kế, chưa VAT), tự gom các dòng cán bộ × nghiệp vụ về <b>mã kênh tổng</b>'+
+      (rv.loaded&&!rv.err?' — đọc qua '+(rv.src==='pub'?'<b>CSV xuất bản</b>':'<b>gviz</b>')+
+        ', '+fmtN(rv.nrow)+' dòng'+(rv.scale===1000?', ô số nhân 1.000 vì cột đang bị Google Sheet chia 1.000':'')+
+        (rv.authTotal>0?', đạt '+(rv.cover*100).toFixed(1)+'% doanh thu XO của sheet <em>ty-le-bt</em>':'')+'. ':'. ')+
+      'Bồi thường lấy từ dữ liệu hồ sơ theo cột <b>Mã kênh tổng</b>. '+
+      '<b>TLBT ở bảng này = Tiền ước/duyệt BT ÷ Doanh thu phí lũy kế</b> nên là <b>số ước tính nội bộ</b>, '+
+      'không trùng khít TLBT chính thức ở bảng theo nghiệp vụ (bảng đó tính theo bồi thường thực trả của năm nghiệp vụ). '+
+      'Ô "Tên kênh" chỉ điền với mã đã đối chiếu được qua cột Mã kênh bán; mã còn lại giữ nguyên — '+
+      'trỏ chuột vào mã để xem các mã kênh bán thuộc kênh đó.'+
+    '</div>'+
+  '</div>'+
+  '<div class="chart-card" style="margin-bottom:20px">'+
+    '<h3>'+(showRev?'Doanh thu phí &amp; tỷ lệ bồi thường theo kênh khai thác (Top 9)'
+                   :'Tiền ước/duyệt BT &amp; số hồ sơ theo kênh khai thác (Top 9)')+'</h3>'+
+    '<div class="chart-wrap"><canvas id="chart-kenh-bt"></canvas></div></div>';
+}
+
+function _refreshKenhSection(){
+  const el=document.getElementById('kenh-bt-section');
+  if(!el)return;
+  // kenhSection() trả về 2 khối (bảng + chart-card); khối chart cũ nằm ngay sau nên xoá trước
+  const next=el.nextElementSibling;
+  if(next&&next.querySelector&&next.querySelector('#chart-kenh-bt'))next.remove();
+  el.outerHTML=kenhSection();
 }
 
 // Tên nghiệp vụ chuẩn tiếng Việt theo mã
@@ -1799,8 +2218,9 @@ function renderAll(){
   renderCLDV(s);renderSearch();
   renderTienich();
   fitTopTabs();
-  // Tải sheet TLBT song song (không block render chính)
+  // Tải sheet TLBT + sheet doanh thu theo kênh song song (không block render chính)
   loadTlbtSheet();
+  loadKenhSheet();
 }
 
 /* ── Thanh tab trong topbar: tự co để 8 tab vừa đúng 1 hàng ───────────────────
@@ -1856,6 +2276,7 @@ function renderOverview(s){
     </div>
   `;
   el.innerHTML+=buildNvBtSection(curYear);
+  el.innerHTML+=kenhSection();                        // Đợt 3: doanh thu & TLBT theo kênh khai thác
   el.innerHTML+=flowSection(s)+renderInfographic();   // Đợt 2: dòng chảy hồ sơ theo tháng
   // 2 chart cũ (tiếp nhận/GQ theo GĐV, donut phân bổ tồn) đã bỏ 11/2026: lặp lại đúng
   // nội dung bảng ở tab Theo GĐV và biểu đồ phân bổ tồn ở tab Đề xuất cải tiến CLDV.
@@ -2448,15 +2869,16 @@ let DASH_DIM='gdv';
 let _dashLastS=null;
 const DASH_DIM_LABEL={gdv:'Giám định viên',diaban:'Địa bàn',nv:'Nghiệp vụ',
   hangxe:'Hãng xe',garage:'Gara/Showroom',trangthai:'Trạng thái hồ sơ',
-  mucTien:'Mức tiền ước/duyệt BT'};
+  mucTien:'Mức tiền ước/duyệt BT',kenh:'Kênh khai thác'};
 // Nhãn trên nút chọn tiêu chí (khác DASH_DIM_LABEL — nhãn nút có icon, chữ ngắn hơn
 // tiêu đề biểu đồ). Dùng chung cho nút trigger và các mục trong droplist "Xem theo".
 const DASH_DIM_BTN=[['gdv','👤 Giám định viên'],['diaban','📍 Địa bàn'],['nv','🚗 Nghiệp vụ'],
   ['hangxe','🏭 Hãng xe'],['garage','🔧 Gara/Showroom'],['trangthai','📌 Trạng thái HS'],
-  ['mucTien','💰 Số tiền bình quân/vụ']];
+  ['mucTien','💰 Số tiền bình quân/vụ'],['kenh','📡 Kênh khai thác']];
 // Số nhóm tối đa hiển thị — phần đuôi gộp vào "Khác" (null = hiện tất cả).
 // Hãng xe (~40 giá trị) và Gara (~118 giá trị) phải giới hạn thì biểu đồ mới đọc được.
-const DASH_TOP_N={gdv:null,diaban:null,nv:null,hangxe:12,garage:12,trangthai:null,mucTien:null};
+const DASH_TOP_N={gdv:null,diaban:null,nv:null,hangxe:12,garage:12,trangthai:null,mucTien:null,
+  kenh:12};   // 18 mã kênh tổng, đuôi toàn kênh dưới 25 HS → gộp "Khác" cho nhãn chart đọc được
 
 // Khoảng tiền ước/duyệt BT của từng hồ sơ (dim "mucTien").
 // Ranh giới: <10tr · 10–<50tr · 50–<100tr · ≥100tr; hồ sơ chưa có số tiền ước
@@ -2528,6 +2950,7 @@ function dimKeyOf(r,dim){
   if(dim==='hangxe')return normDimVal(r['Hãng xe']);
   if(dim==='garage')return normDimVal(r['Tên garage (thường gọi)']||r['Tên garage (ĐKKD)']);
   if(dim==='trangthai')return normDimVal(r['Trạng thái hồ sơ']);
+  if(dim==='kenh')return normDimVal(r['Mã kênh tổng']);
   if(dim==='mucTien')return moneyBucketKey(r['Tiền ước/duyệt BT']);
   return gdvKey(r)||'—';
 }
