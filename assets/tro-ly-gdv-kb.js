@@ -2,7 +2,10 @@
    BỘ TRI THỨC TRỢ LÝ ẢO GIÁM ĐỊNH VIÊN — PTISOS Quảng Ninh
    Nạp bởi index.html (popup "Trợ lý GĐV"). Chạy offline, không gọi AI/Internet.
 
-   Nguồn chính (ưu tiên quy trình PTI) — toàn bộ nằm trong docs/Kho tri thức:
+   Nguồn chính (ưu tiên quy trình PTI) — toàn bộ nằm trên Google Drive, thư mục
+   "Kho tri thức - Trợ lý GDV" (folder ID 1KdSBw_qWJeX2dl97ARJucfFQkMRs9WaQ,
+   riêng tư). Trước 11/2026 các nguồn này nằm ở docs/Kho tri thức/ trong repo.
+   File này vẫn chạy hoàn toàn offline — Drive chỉ là nơi giữ bản gốc để soạn KB:
    · Quy trình giải quyết YCBT NV XCG ký hiệu PTI.XCG.20 (QĐ ban hành 20/12/2024)
      và 18 phụ lục PL.PTI.XCG.20.01 → 20.18 (PL.20.04 dùng bản "mới" — nhận thế
      quyền đòi NT3, bộ biểu mẫu NVXE039.01.xx)
@@ -17,8 +20,8 @@
      NĐ 46/2023, TT 67/2023/TT-BTC, NĐ 67/2023, NĐ 220/2026, BLDS 91/2015
    · Sổ tay tham khảo (gắn v: 0): Bộ Q&A 300 tình huống, Nhóm tình huống thực tế GĐBT
    Văn bản ban hành trước QT PTI.XCG.20 được gắn v: 0 (tham khảo).
-   Bản gốc lưu tại docs/Kho tri thức (đã .gitignore — KHÔNG đẩy lên GitHub Pages).
-   ⚠ Chỉ đưa vào đây nội dung có tài liệu gốc trong docs/ — tài liệu bị gỡ khỏi kho
+   Bản gốc lưu trên Drive riêng tư (KHÔNG đẩy lên GitHub Pages).
+   ⚠ Chỉ đưa vào đây nội dung có tài liệu gốc trong kho — tài liệu bị gỡ khỏi kho
      thì gỡ luôn mục tương ứng (xem CLAUDE.md, mục Trợ lý ảo GĐV).
 
    CÁCH BỔ SUNG / SỬA NỘI DUNG
