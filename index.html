@@ -188,12 +188,6 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:linear-gradient(150deg,#
 .file-date-badge.fresh{background:rgba(16,185,129,.18);color:#6ee7b7;border:1px solid rgba(16,185,129,.35)}
 .file-date-badge.warn {background:rgba(245,158,11,.18);color:#fcd34d;border:1px solid rgba(245,158,11,.35)}
 .file-date-badge.old  {background:rgba(239,68,68,.18); color:#fca5a5;border:1px solid rgba(239,68,68,.35)}
-.btn-reset{
-  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
-  color:rgba(255,255,255,.85);padding:6px 14px;border-radius:6px;
-  font-size:.78rem;cursor:pointer;transition:all .15s;font-family:'Be Vietnam Pro',sans-serif;white-space:nowrap;
-}
-.btn-reset:hover{background:rgba(255,255,255,.22)}
 .btn-refresh{
   background:rgba(66,133,244,.22);border:1px solid rgba(66,133,244,.45);
   color:#90caf9;padding:6px 14px;border-radius:6px;
@@ -744,6 +738,38 @@ table.gdv td.hl-green{color:#059669}
 footer{
   text-align:center;padding:20px 24px;color:var(--text3);font-size:.75rem;
   margin-top:8px;border-top:1px solid var(--border);line-height:1.8;
+}
+
+/* ── BỘ ĐẾM LƯỢT TRUY CẬP & NGƯỜI ĐANG XEM ──────────────────────────────────
+   Nổi ở góc dưới bên trái của MỌI màn hình (đăng nhập · upload · dashboard),
+   nên dùng position:fixed chứ không đặt trong <footer> (footer chỉ có ở
+   dashboard). Màu cố tình mờ gần bằng nền để không tranh chỗ với số liệu —
+   di chuột vào thì rõ hẳn. Hai tông: màn đăng nhập/upload nền xanh đậm dùng
+   chữ trắng mờ, dashboard nền sáng dùng xám mờ (.vc-light do show() gắn). */
+#visit-counter{
+  position:fixed;left:14px;bottom:10px;z-index:95;
+  font-family:'Be Vietnam Pro',sans-serif;font-size:.62rem;letter-spacing:.01em;
+  line-height:1.5;white-space:nowrap;pointer-events:auto;cursor:default;
+  color:rgba(255,255,255,.3);transition:color .2s;
+  text-shadow:0 1px 2px rgba(0,0,0,.18);
+}
+#visit-counter.vc-light{color:rgba(100,116,139,.42);text-shadow:none}
+#visit-counter:hover{color:rgba(255,255,255,.72)}
+#visit-counter.vc-light:hover{color:rgba(71,85,105,.9)}
+#visit-counter b{font-weight:700}
+#visit-counter .vc-dot{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:currentColor;margin-right:3px;vertical-align:middle;opacity:.85;
+}
+#visit-counter.vc-on .vc-dot{background:#22c55e;opacity:.75;animation:vcPulse 2.4s ease-in-out infinite}
+@keyframes vcPulse{0%,100%{opacity:.4}50%{opacity:.95}}
+#visit-counter .vc-sep{opacity:.5;margin:0 5px}
+#visit-counter .vc-note{opacity:.75;font-style:italic}
+@media (max-width:600px){
+  #visit-counter{font-size:.56rem;left:8px;bottom:6px}
+}
+@media (prefers-reduced-motion:reduce){
+  #visit-counter.vc-on .vc-dot{animation:none}
 }
 
 /* ── INFOGRAPHIC TAB ── */
@@ -1518,17 +1544,7 @@ function show(id){
   const el=document.getElementById(id);
   if(id==='dashboard'){el.style.display='block';}
   else{el.style.display='flex';el.style.flexDirection='column';}
-}
-
-function resetApp(){
-  RAW=[];destroyCharts();
-  // Hủy request Google Drive đang chạy (nếu có)
-  clearTimeout(window.__gvizTimeout);
-  const gs=document.getElementById('_gviz_script');if(gs)gs.remove();
-  _gvizResetBtn();
-  const rb=document.getElementById('btn-refresh');if(rb){rb.style.display='none';rb.disabled=false;rb.textContent='🔄 Làm mới';}
-  try{localStorage.removeItem(LS_KEY);localStorage.removeItem(LS_FILE);}catch(e){}
-  show('upload-screen');
+  vcTheme(id);
 }
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -6747,6 +6763,96 @@ function tlAnswerData(q){
   return null;
 }
 // ─── HẾT TRỢ LÝ ẢO GĐV ───
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BỘ ĐẾM LƯỢT TRUY CẬP & NGƯỜI ĐANG XEM
+   Trang là HTML tĩnh (GitHub Pages) nên số chung phải để ngoài: dùng Firebase
+   Realtime Database — chọn vì "đang xem" cần biết lúc nào một máy RỜI trang,
+   việc mà chỉ kết nối thường trực (onDisconnect) làm chính xác được.
+   · Tổng lượt   : stats/views — mỗi lần MỞ TRANG +1 (kể cả tải lại trang).
+   · Đang xem    : online/<phiên> = {t: giờ máy chủ}, báo nhịp mỗi VC_BEAT;
+                   đóng tab là Firebase tự xoá nút con của phiên đó.
+   Để trống VC_DB_URL → bộ đếm chạy CHẾ ĐỘ CỤC BỘ (chỉ đếm trên chính máy
+   đang mở, có ghi chú "(máy này)") để trang không bao giờ hiện số sai.
+   Cách lấy VC_DB_URL và bộ quy tắc bảo mật: xem docs/bo-dem-truy-cap.md
+   ══════════════════════════════════════════════════════════════════════════ */
+const VC_DB_URL = 'https://pti-qn-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app';
+const VC_SDK    = 'https://www.gstatic.com/firebasejs/10.14.1/';
+const VC_BEAT   = 45000;    // nhịp báo "còn đang xem"
+const VC_TTL    = 150000;   // quá 2,5 phút không có nhịp → coi như đã rời
+const VC_LS     = 'pti_vc_local';
+let _vcViews=null, _vcOnline=null, _vcOff=0, _vcLocal=false;
+
+function vcEl(){ return document.getElementById('visit-counter'); }
+function vcNum(n){ return (n==null) ? '—' : Number(n).toLocaleString('vi-VN'); }
+function vcPaint(){
+  const el=vcEl(); if(!el) return;
+  el.classList.toggle('vc-on', _vcOnline!=null && _vcOnline>0);
+  el.innerHTML = '<span class="vc-dot"></span>Lượt truy cập: <b>'+vcNum(_vcViews)+'</b>'+
+                 '<span class="vc-sep">·</span>Đang xem: <b>'+vcNum(_vcOnline)+'</b>'+
+                 (_vcLocal ? ' <span class="vc-note">(máy này)</span>' : '');
+  el.title = _vcLocal
+    ? 'Chưa nối cơ sở dữ liệu chung nên chỉ đếm số lần mở trang trên chính máy này.'
+    : 'Tổng số lần trang được mở · số người đang mở trang lúc này';
+}
+/* Màn đăng nhập/upload nền xanh đậm, dashboard nền sáng → đổi tông cho hợp nền */
+function vcTheme(id){ const el=vcEl(); if(el) el.classList.toggle('vc-light', id==='dashboard'); }
+
+function vcLocalMode(){
+  _vcLocal=true;
+  let n=0; try{ n=parseInt(localStorage.getItem(VC_LS)||'0',10)||0; }catch(e){}
+  n++;     try{ localStorage.setItem(VC_LS,String(n)); }catch(e){}
+  _vcViews=n; _vcOnline=1; vcPaint();
+}
+function vcLoadSdk(src){
+  return new Promise((ok,no)=>{
+    const s=document.createElement('script');
+    s.src=src; s.async=true; s.onload=ok; s.onerror=()=>no(new Error(src));
+    document.head.appendChild(s);
+  });
+}
+function vcStart(){
+  const app = firebase.initializeApp({ databaseURL: VC_DB_URL });
+  const db  = firebase.database(app), SV = firebase.database.ServerValue;
+  /* Giờ máy người dùng có thể lệch; lấy độ lệch so với máy chủ để so mốc nhịp */
+  db.ref('.info/serverTimeOffset').on('value', s=>{ _vcOff = s.val()||0; });
+
+  db.ref('stats/views').transaction(n => (n||0)+1).catch(()=>{});
+  db.ref('stats/views').on('value', s=>{ _vcViews = s.val()||0; vcPaint(); });
+
+  const me   = db.ref('online').push();
+  const beat = ()=>{ me.set({ t: SV.TIMESTAMP }).catch(()=>{}); };
+  db.ref('.info/connected').on('value', s=>{
+    if(!s.val()){ _vcOnline=null; vcPaint(); return; }   // mất mạng → để "—", đừng hiện số cũ
+    me.onDisconnect().remove(); beat();
+  });
+  setInterval(beat, VC_BEAT);
+
+  db.ref('online').on('value', s=>{
+    const now = Date.now() + _vcOff; let n = 0;
+    s.forEach(c=>{
+      const t = (c.val()||{}).t;
+      if(typeof t !== 'number') return;
+      if(now - t < VC_TTL) n++;
+      else if(now - t > VC_TTL*6) c.ref.remove();   // phiên chết (máy sập/mất mạng đột ngột)
+    });
+    _vcOnline = n; vcPaint();
+  });
+}
+function vcInit(){
+  vcPaint();
+  if(!VC_DB_URL){ vcLocalMode(); return; }
+  vcLoadSdk(VC_SDK+'firebase-app-compat.js')
+    .then(()=>vcLoadSdk(VC_SDK+'firebase-database-compat.js'))
+    .then(vcStart)
+    .catch(e=>{ console.warn('[bộ đếm] không dùng được Firebase:', e.message||e); vcLocalMode(); });
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', vcInit);
+else vcInit();
 </script>
+<!-- Bộ đếm lượt truy cập & người đang xem — nằm NGOÀI #dashboard để hiện ở
+     cả màn đăng nhập, màn chọn nguồn dữ liệu và dashboard. Số liệu lưu chung
+     trên Firebase Realtime Database; xem VC_DB_URL trong <script>. -->
+<div id="visit-counter" aria-live="polite"></div>
 </body>
 </html>

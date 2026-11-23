@@ -50,9 +50,21 @@ for (const e of KB) {
   }
 }
 
-// ── Nguồn không được trỏ tới thư mục tài liệu đã xoá (xem CLAUDE.md) ──
-const GONE = /Thi dinh ky|docs\/Tien ich|Mau bieu-GD/;
-for (const e of KB) if (GONE.test(e.s || '')) bad(`${e.id}: nguồn trỏ tới thư mục đã xoá → ${e.s}`);
+/* ── Nguồn không được trỏ tới tài liệu đã mất (xem CLAUDE.md, mục Trợ lý ảo GĐV) ──
+   Hai loại:
+   · thư mục tài liệu đã xoá khỏi repo (giai đoạn kho còn nằm ở docs/)
+   · tài liệu gốc không còn trên Drive — người dùng đã chốt gỡ mục tương ứng,
+     nên nguồn mới viện dẫn lại là lỗi.
+   Thêm tài liệu bị gỡ khỏi kho thì thêm 1 dòng vào DEAD_SRC. */
+const DEAD_SRC = [
+  [/Thi dinh ky|docs\/Tien ich|Mau bieu-GD/, 'thư mục tài liệu đã xoá khỏi repo'],
+  [/Tiện ích tra cứu CV/i,                    'sổ tay "Tiện ích tra cứu CV" — không còn bản gốc ở máy lẫn trên Drive (gỡ 23/11/2026)']
+];
+for (const e of KB) {
+  for (const [re, why] of DEAD_SRC) {
+    if (re.test(e.s || '')) bad(`${e.id}: nguồn đã mất (${why}) → ${e.s}`);
+  }
+}
 
 console.log('\nSố mục theo nhóm:');
 for (const g of GROUPS) {
