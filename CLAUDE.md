@@ -4,6 +4,15 @@
 
 **Đơn vị**: PTISOS - Văn phòng Miền Bắc - Phòng Khu vực Quảng Ninh
 
+## Repo & trang chạy thật
+
+| | |
+|---|---|
+| Repo GitHub | `https://github.com/chinhnhpti013/baocaotuan` (nhánh triển khai: `main`) |
+| Trang GitHub Pages | `https://chinhnhpti013.github.io/baocaotuan/` |
+
+> **Đổi tên repo 24/11/2026**: `xcg-dashboard` → `baocaotuan`. Link Pages cũ `…/xcg-dashboard/` nay trả **404, không redirect** (đã đo) — ai còn lưu bookmark cũ phải đổi. `git remote origin` đã trỏ sang URL mới. Tên chủ sở hữu và `GDRIVE_PUB_ID` không đổi; Firebase RTDB của bộ đếm **không** chặn theo tên miền nên không phải cấu hình lại.
+
 ## Mục đích
 
 Tự động hóa việc tổng hợp và xuất dashboard báo cáo tiến trình bồi thường xe ô tô tại PTI Quảng Ninh từ dữ liệu file `input/Dulieu.xlsx`, hiển thị dưới dạng HTML tương tác chạy offline trong trình duyệt.
@@ -255,6 +264,7 @@ Các hàm `*Section(s)` **trả về chuỗi HTML** để hàm render của tab 
 - `GQ_MIN_HS = 5` — gara dưới 5 hồ sơ không được gắn nhãn đánh giá (trung vị vô nghĩa). Nhãn: `w2.med ≥ 20` → "Chậm quyết toán", `≥ 12` → "Quyết toán hơi chậm"; `w1.med ≥ 10` → "Chậm gửi báo giá", `≥ 5` → "Báo giá hơi chậm"; không dính gì → "Phối hợp tốt".
 - Tần suất xe: bảng liệt kê xe **≥2 vụ**; cột *Khoảng cách 2 vụ gần nhất* tô đỏ khi ≤15 ngày, vàng 16–30 ngày (dấu hiệu tách vụ / trùng hồ sơ). Khách hàng: ngưỡng **≥5 hồ sơ**.
 - Công nợ chia 3 dải tuổi nợ: <7 · 7–29 · ≥30 ngày, tính từ Ngày duyệt bồi thường đến `dataAsOf()`.
+- **Bảng 8 "Tạm ứng chưa thu hồi"** (sửa 24/11/2026 theo yêu cầu người dùng): 2 cột cuối đổi nghĩa — **Còn phải trả** = `Tiền ước/duyệt BT` − `Tiền TƯ cho KH` (cột AZ − BB), **Đã bồi thường** = `Tiền BT đã trả cho KH` (cột BA, qua `traKhOf`). Hai cột cũ "Đã thu hồi" (`a.thu`) / "Còn phải thu" (`a.con`) **không bị xoá khỏi engine** — `a.con` vẫn là nguồn của `D.advCon` in ở dòng tiêu đề "… còn treo X tr". Mục đích 2 cột mới: hai số **bằng nhau** nghĩa là tạm ứng đã được khấu trừ ngay khi trả nốt, không phải khoản còn treo thật. Dữ liệu 10/2026: cả 3 hồ sơ (đều của HUONGNV, mỗi HS tạm ứng 45 tr) đều bằng nhau — 105/105, 105/105, 30/30 tr. Cờ `a.settled` = `traKH > 0 && conTra − traKH <= 0` (đã trả nốt phần còn lại → tạm ứng coi như đã khấu trừ): hồ sơ `settled` **bỏ tô đỏ** cột Còn phải trả, và dòng tiêu đề nay in **3 số** thay cho câu "còn treo X" cũ — tổng tạm ứng chưa ghi nhận thu hồi (`advCon`) · **thực tế còn treo** (`advTreoN`/`advTreoTien`, cộng `a.con` của hồ sơ chưa settled) · số hồ sơ đã khấu trừ (`advSetN`/`advSetTien`). Dữ liệu 10/2026 ra "3 hồ sơ … (135,0 tr) · thực tế còn treo 0 hồ sơ · 3 hồ sơ đã khấu trừ khi trả nốt (135,0 tr)" — câu cũ "còn treo 135,0 tr" là **sai**, đừng khôi phục. ⚠️ Chỉ trừ `Tiền TƯ cho KH`, **không** cộng `Tiền TƯ cho GR` (đúng cột BB người dùng chỉ định; dữ liệu 10/2026 không có HS nào tạm ứng cho gara).
 
 ### Đo thật (dữ liệu 10/2026 — 2.200 HS)
 
@@ -427,7 +437,7 @@ Thay vì chỉ upload file, màn hình upload có 2 card song song:
 - ⚠️ `raw:true` khi parse CSV là **bắt buộc** — không có nó SheetJS đổi `"11/09/2026"` thành ngày kiểu Mỹ (tháng/ngày đảo)
 - Không dùng `/export?format=csv`: dữ liệu đúng nhưng bước redirect 307 thiếu header CORS → trình duyệt chặn (đã thử Chrome headless từ file://)
 - Sheet đã bật **Tệp → Chia sẻ → Xuất bản lên web** (09/2026: sheet `XCG05_HSBT`, CSV, tự động xuất bản lại khi thay đổi). ID xuất bản lưu ở hằng `GDRIVE_PUB_ID` (`2PACX-…`), URL `https://docs.google.com/spreadsheets/d/e/${GDRIVE_PUB_ID}/pub?gid=${GDRIVE_GID}&single=true&output=csv`. Dạng `/d/${GDRIVE_FILE_ID}/pub?...` **không dùng được** (401). Nếu người dùng dừng xuất bản rồi xuất bản lại, ID `2PACX-` có thể đổi → phải cập nhật hằng này. ✅ Từ 23/11/2026 bản xuất bản gồm **toàn bộ tài liệu**, nên `pub?gid=1569610723` (sheet `DoanhthuKenh`) cũng tải được — khối Đợt 3 chạy đường CSV, không còn rơi về gviz. Bản xuất bản có thể trễ vài phút so với Sheet.
-- ⚠️ CSV xuất bản **chỉ tải được khi trang chạy qua http/https** (GitHub Pages `https://chinhnhpti013.github.io/xcg-dashboard/`): bước redirect 307 chỉ trả `Access-Control-Allow-Origin` cho Origin thật, không cho `Origin: null` của file:// → mở `index.html` trực tiếp trên máy sẽ rơi về gviz (có alert giải thích). Đã kiểm tra bằng Chrome headless cả 2 trường hợp.
+- ⚠️ CSV xuất bản **chỉ tải được khi trang chạy qua http/https** (GitHub Pages `https://chinhnhpti013.github.io/baocaotuan/`): bước redirect 307 chỉ trả `Access-Control-Allow-Origin` cho Origin thật, không cho `Origin: null` của file:// → mở `index.html` trực tiếp trên máy sẽ rơi về gviz (có alert giải thích). Đã kiểm tra bằng Chrome headless cả 2 trường hợp.
 - ⚠️ URL gviz **bắt buộc** có `&headers=1` để gviz đọc hàng đầu làm tên cột (thiếu tham số này → cột trả về dạng A, B, C, toàn bộ số liệu = 0)
 - ⚠️ URL **bắt buộc** có `&_=${Date.now()}` để tránh browser cache: khi cập nhật file Drive mới, không có cache-buster sẽ vẫn tải dữ liệu cũ
 - **Không thêm lại ô nhập URL/ID tùy chỉnh** — người dùng cập nhật dữ liệu bằng cách ghi đè file Drive giữ nguyên ID

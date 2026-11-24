@@ -4789,12 +4789,24 @@ function computeDebtStats(data){
       const dt=parseDate(r['Ngày TƯ cho KH'])||parseDate(r['Ngày TƯ cho GR']);
       adv.push({gdv:gdvKey(r),hsbt:String(r['Số HSBT']||''),bienso:String(r['Biển số xe']||''),
         tu:tu,thu:tuTh,con:tu-tuTh,ngay:dt,
+        // Cột AZ − BB: phần tiền ước/duyệt còn lại sau khi đã tạm ứng cho KH.
+        // Cột BA: số thực đã bồi thường cho KH. Hai cột đặt cạnh nhau để thấy ngay
+        // tạm ứng đã được khấu trừ vào lần trả cuối hay thật sự còn treo.
+        conTra:bt-parseMoney(r['Tiền TƯ cho KH']),traKH:traKH,
         age:dt?Math.max(0,Math.round((asOf.getTime()-dt.getTime())/864e5)):null,
         tt:String(r['Trạng thái hồ sơ']||'')});
     }
   });
   pend.sort(function(a,b){return b.age-a.age||b.bt-a.bt});
   adv.sort(function(a,b){return (b.age||0)-(a.age||0)});
+  // Tạm ứng đã được KHẤU TRỪ khi trả nốt: đã trả cho KH và số đó bù đủ phần
+  // còn phải trả (Tiền ước − TƯ cho KH). Những hồ sơ này không còn treo đồng nào,
+  // dù cột "Tiền thu hồi TƯ của KH" trong file nguồn để trống.
+  let advSetN=0,advSetTien=0,advTreoN=0,advTreoTien=0;
+  adv.forEach(function(a){
+    a.settled=a.traKH>0&&a.conTra-a.traKH<=0;
+    if(a.settled){advSetN++;advSetTien+=a.tu;}else{advTreoN++;advTreoTien+=a.con;}
+  });
   const band=function(lo,hi){return pend.filter(function(p){return p.age>=lo&&(hi===null||p.age<hi)})};
   const bands=[{lab:'Dưới 7 ngày',rows:band(0,7),lv:'flag-lo'},
                {lab:'7 – 29 ngày',rows:band(7,30),lv:'flag-md'},
@@ -4802,6 +4814,7 @@ function computeDebtStats(data){
   return{asOf:asOf,pend:pend,adv:adv,bands:bands,huyOrZero:huyOrZero,
     pendBt:pend.reduce(function(a,p){return a+p.bt},0),
     advCon:adv.reduce(function(a,p){return a+p.con},0),
+    advSetN:advSetN,advSetTien:advSetTien,advTreoN:advTreoN,advTreoTien:advTreoTien,
     cuuHoN:cuuHoN,cuuHoTien:cuuHoTien,thuHoiN:thuHoiN,thuHoiTien:thuHoiTien,
     tongUoc:tongUoc,tongTra:tongTra};
 }
@@ -4842,8 +4855,8 @@ function debtSection(s){
       '<td class="'+(a.age!==null&&a.age>=60?'hl-red':a.age!==null&&a.age>=30?'hl-amber':'')+'">'+
         (a.age===null?'–':fmtN(a.age))+'</td>'+
       '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace">'+fmtMBC(a.tu)+'</td>'+
-      '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace">'+fmtMBC(a.thu)+'</td>'+
-      '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace;font-weight:700;color:#b91c1c">'+fmtMBC(a.con)+'</td>'+
+      '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace;font-weight:700'+(a.settled?'':';color:#b91c1c')+'">'+fmtMBC(a.conTra)+'</td>'+
+      '<td style="text-align:right;font-family:\'JetBrains Mono\',monospace">'+fmtMBC(a.traKH)+'</td>'+
       '<td style="font-size:.7rem">'+cutTxt(a.tt,22)+'</td>'+
     '</tr>';
   }).join('');
@@ -4901,7 +4914,11 @@ function debtSection(s){
   '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#7f1d1d,#dc2626)">'+
       '<div class="title">8. TẠM ỨNG CHƯA THU HỒI</div>'+
-      '<div class="period"><b>'+fmtN(D.adv.length)+' hồ sơ</b> còn treo <b>'+fmtMBC(D.advCon)+'</b></div>'+
+      '<div class="period"><b>'+fmtN(D.adv.length)+' hồ sơ</b> có tạm ứng chưa ghi nhận thu hồi '+
+        '('+fmtMBC(D.advCon)+') &nbsp;·&nbsp; thực tế còn treo <b>'+
+        (D.advTreoN?fmtN(D.advTreoN)+' hồ sơ / '+fmtMBC(D.advTreoTien):'0 hồ sơ')+'</b>'+
+        (D.advSetN?' &nbsp;·&nbsp; '+fmtN(D.advSetN)+' hồ sơ đã khấu trừ khi trả nốt ('+fmtMBC(D.advSetTien)+')':'')+
+      '</div>'+
     '</div>'+
     '<div class="gdv-table-outer" style="max-height:380px;overflow-y:auto">'+
       '<table class="gdv" style="min-width:980px">'+
@@ -4913,14 +4930,17 @@ function debtSection(s){
           '<th class="lv3" style="width:100px">Ngày tạm ứng</th>'+
           '<th class="lv2" style="width:90px">Số ngày treo</th>'+
           '<th class="lv3" style="width:120px">Đã tạm ứng</th>'+
-          '<th class="lv3" style="width:120px">Đã thu hồi</th>'+
-          '<th class="lv2" style="width:120px">Còn phải thu</th>'+
+          '<th class="lv2" style="width:120px">Còn phải trả</th>'+
+          '<th class="lv3" style="width:120px">Đã bồi thường</th>'+
           '<th class="lv3" style="min-width:120px">Trạng thái HS</th>'+
         '</tr></thead>'+
         '<tbody>'+advRows+'</tbody>'+
       '</table>'+
     '</div>'+
     '<div class="gdv-report-footer">Gồm cả tạm ứng cho khách hàng và cho gara. '+
+      '<b>Còn phải trả</b> = Tiền ước/duyệt BT − Tiền TƯ cho KH &nbsp;·&nbsp; '+
+      '<b>Đã bồi thường</b> = Tiền BT đã trả cho KH. Hai cột bằng nhau nghĩa là tạm ứng đã được '+
+      'khấu trừ khi trả nốt (tiền ước chưa VAT, tiền thực trả đã gồm VAT nên có thể lệch). '+
       '<span style="color:#dc2626;font-weight:700">■</span> treo ≥60 ngày &nbsp;'+
       '<span style="color:#d97706;font-weight:700">■</span> 30–59 ngày.</div>'+
   '</div>':'');

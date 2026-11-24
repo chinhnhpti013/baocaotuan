@@ -3,6 +3,14 @@
 
 ---
 
+## Trang chạy thật
+
+**<https://chinhnhpti013.github.io/baocaotuan/>** — triển khai từ nhánh `main` của repo <https://github.com/chinhnhpti013/baocaotuan>.
+
+> Nên mở qua link này thay vì mở `index.html` trên máy: chỉ khi chạy qua https mới tải được dữ liệu Google Sheet (CSV xuất bản) và xin được quyền micro cho Trợ lý GĐV.
+
+---
+
 ## Giới thiệu
 
 Dashboard HTML tương tác để tổng hợp và phân tích tiến trình giám định bồi thường xe cơ giới. Toàn bộ xử lý diễn ra **offline trong trình duyệt** — không cần server, không lưu dữ liệu.
