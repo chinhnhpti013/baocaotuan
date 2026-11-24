@@ -3339,24 +3339,14 @@ function renderDashboard(s){
   const el=document.getElementById('dash-dyn');   // khối con của tab Tổng quan
   if(!el)return;
   // Huỷ chart cũ khi đổi tiêu chí nhóm (renderAll không chạy lại trong trường hợp này)
-  ['chart-dash-bucket','chart-dash-ratio','chart-dash-money'].forEach(id=>{
+  ['chart-dash-money'].forEach(id=>{
     if(CHARTS[id]){try{CHARTS[id].destroy()}catch{}delete CHARTS[id];}
   });
   const groups=computeDashGroups(s.rows,DASH_DIM);            // nhóm cho biểu đồ (Top N)
   const tableGroups=computeDashGroups(s.rows,DASH_DIM,true);   // nhóm cho bảng (Hãng xe/Gara lọc theo tiền)
   const labels=groups.map(g=>g.short);
-  // Hãng xe / Gara-Showroom: chart thứ 2 đổi sang số vụ Đã/Chưa GQ để khớp bảng chi tiết
-  const vuMode=dimHasMoneyTable(DASH_DIM);
-  // Mức tiền: 2 chart đầu đổi sang số vụ và số tiền bình quân/vụ (đơn vị triệu đồng)
-  const moneyMode=DASH_DIM==='mucTien';
-  const bucketTitle=moneyMode
-    ?`Tổng số vụ theo ${DASH_DIM_LABEL[DASH_DIM]}`
-    :`Phân bổ hồ sơ tồn theo bucket ngày — theo ${DASH_DIM_LABEL[DASH_DIM]}`;
-  const ratioTitle=moneyMode
-    ?'Số tiền bình quân/vụ (triệu đồng)'
-    :vuMode
-    ?`Đã giải quyết / Chưa giải quyết (số vụ) — theo ${DASH_DIM_LABEL[DASH_DIM]}`
-    :'Tỷ lệ giải quyết &amp; Tỷ lệ tồn/PS trung bình tháng (%)';
+  // 11/2026: đã bỏ 2 chart đầu (phân bổ bucket ngày / tỷ lệ giải quyết) theo yêu cầu người dùng —
+  // nội dung của chúng đã nằm đủ trong bảng chi tiết ngay cạnh. Khối chỉ còn donut + bảng.
 
   el.innerHTML=`
     <div class="dash-sec-head">
@@ -3372,33 +3362,12 @@ function renderDashboard(s){
     </div>
 
     <div class="chart-row">
-      <div class="chart-card"><h3>${bucketTitle}</h3><div class="chart-wrap"><canvas id="chart-dash-bucket"></canvas></div></div>
-      <div class="chart-card"><h3>${ratioTitle}</h3><div class="chart-wrap"><canvas id="chart-dash-ratio"></canvas></div></div>
-    </div>
-    <div class="chart-row">
       <div class="chart-card"><h3>Cơ cấu tiền ước/duyệt BT theo ${DASH_DIM_LABEL[DASH_DIM]}</h3><div class="chart-wrap-pie"><canvas id="chart-dash-money"></canvas></div></div>
       ${dashDetailTable(tableGroups)}
     </div>
   `;
 
   setTimeout(()=>{
-    buildBar('chart-dash-bucket',labels,moneyMode?[
-      {label:'Tổng số vụ',data:groups.map(g=>g.total)}
-    ]:[
-      {label:'1–30 ngày',data:groups.map(g=>g.b1)},
-      {label:'31–45 ngày',data:groups.map(g=>g.b2)},
-      {label:'46–89 ngày',data:groups.map(g=>g.b3)},
-      {label:'≥90 ngày',data:groups.map(g=>g.b4)}
-    ]);
-    buildBar('chart-dash-ratio',labels,moneyMode?[
-      {label:'Bình quân/vụ (triệu đ)',data:groups.map(g=>Math.round(g.bqVu/1e6*10)/10)}
-    ]:vuMode?[
-      {label:'Đã giải quyết',data:groups.map(g=>g.daGQ)},
-      {label:'Chưa giải quyết',data:groups.map(g=>g.chuaGQ)}
-    ]:[
-      {label:'Tỷ lệ GQ (%)',data:groups.map(g=>g.tyLeGQ)},
-      {label:'Tỷ lệ tồn/PS TB tháng (%)',data:groups.map(g=>g.tyLeTon)}
-    ]);
     if(groups.some(g=>g.bt>0)){
       const moneyColors=groups.map((g,i)=>GRAD_PALETTE[i%GRAD_PALETTE.length].top);
       buildDonut('chart-dash-money',labels,groups.map(g=>g.bt),moneyColors);
