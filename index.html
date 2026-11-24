@@ -4764,7 +4764,7 @@ function repeatSection(s){
 function computeDebtStats(data){
   const asOf=dataAsOf(data);
   const pend=[],adv=[];
-  let cuuHoN=0,cuuHoTien=0,thuHoiN=0,thuHoiTien=0,tongUoc=0,tongTra=0,huyOrZero=0;
+  let cuuHoN=0,cuuHoTien=0,thuHoiN=0,thuHoiTien=0,tongUoc=0,tongTra=0,huyOrZero=0,advDone=0;
   data.forEach(function(r){
     const bt=parseMoney(r['Tiền ước/duyệt BT']);
     const traGR=parseMoney(r['Tiền BT đã trả cho GR']), traKH=traKhOf(r);
@@ -4785,7 +4785,12 @@ function computeDebtStats(data){
     }
     const tu=parseMoney(r['Tiền TƯ cho KH'])+parseMoney(r['Tiền TƯ cho GR']);
     const tuTh=parseMoney(r['Tiền thu hồi TƯ của KH'])+parseMoney(r['Tiền thu hồi TƯ của GR']);
-    if(tu>0&&tuTh<tu){
+    // Bỏ khỏi bảng 8 hồ sơ đã trả tiền cho KH (cột BA > 0) VÀ đã giải quyết
+    // (cột BK Số ngày tồn = 0): hồ sơ đã tất toán, tạm ứng nằm trong lần trả cuối,
+    // không còn gì phải theo dõi — dù cột "Tiền thu hồi TƯ của KH" để trống.
+    const advDoneRow=tu>0&&tuTh<tu&&traKH>0&&isResolved(r);
+    if(advDoneRow)advDone++;
+    if(tu>0&&tuTh<tu&&!advDoneRow){
       const dt=parseDate(r['Ngày TƯ cho KH'])||parseDate(r['Ngày TƯ cho GR']);
       adv.push({gdv:gdvKey(r),hsbt:String(r['Số HSBT']||''),bienso:String(r['Biển số xe']||''),
         tu:tu,thu:tuTh,con:tu-tuTh,ngay:dt,
@@ -4814,7 +4819,7 @@ function computeDebtStats(data){
   return{asOf:asOf,pend:pend,adv:adv,bands:bands,huyOrZero:huyOrZero,
     pendBt:pend.reduce(function(a,p){return a+p.bt},0),
     advCon:adv.reduce(function(a,p){return a+p.con},0),
-    advSetN:advSetN,advSetTien:advSetTien,advTreoN:advTreoN,advTreoTien:advTreoTien,
+    advSetN:advSetN,advSetTien:advSetTien,advTreoN:advTreoN,advTreoTien:advTreoTien,advDone:advDone,
     cuuHoN:cuuHoN,cuuHoTien:cuuHoTien,thuHoiN:thuHoiN,thuHoiTien:thuHoiTien,
     tongUoc:tongUoc,tongTra:tongTra};
 }
@@ -4865,7 +4870,7 @@ function debtSection(s){
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6)">'+
       '<div class="title">7. CÔNG NỢ &amp; DÒNG TIỀN BỒI THƯỜNG</div>'+
       '<div class="period">Đã duyệt bồi thường nhưng chưa chi trả: <b>'+fmtN(D.pend.length)+' hồ sơ</b> / <b>'+
-        fmtMBC(D.pendBt)+'</b> &nbsp;·&nbsp; Tạm ứng chưa thu hồi: <b>'+fmtN(D.adv.length)+' hồ sơ</b> / <b>'+
+        fmtMBC(D.pendBt)+'</b> &nbsp;·&nbsp; Hồ sơ tạm ứng còn theo dõi: <b>'+fmtN(D.adv.length)+' hồ sơ</b> / <b>'+
         fmtMBC(D.advCon)+'</b> &nbsp;·&nbsp; Cứu hộ: '+fmtN(D.cuuHoN)+' HS / '+fmtMBC(D.cuuHoTien)+
         ' &nbsp;·&nbsp; Thu hồi BT: '+fmtN(D.thuHoiN)+' HS / '+fmtMBC(D.thuHoiTien)+'</div>'+
     '</div>'+
@@ -4910,14 +4915,16 @@ function debtSection(s){
       'Lưu ý chuẩn VAT: Tiền ước/duyệt BT là số <b>chưa VAT</b>, tiền thực chi <b>đã gồm VAT</b>, nên số chi thực tế thường lớn hơn cột này.'+
     '</div>'+
   '</div>'+
-  (D.adv.length?
   '<div class="gdv-report-wrap" style="margin-bottom:20px">'+
     '<div class="gdv-report-header" style="background:linear-gradient(135deg,#7f1d1d,#dc2626)">'+
-      '<div class="title">8. TẠM ỨNG CHƯA THU HỒI</div>'+
-      '<div class="period"><b>'+fmtN(D.adv.length)+' hồ sơ</b> có tạm ứng chưa ghi nhận thu hồi '+
-        '('+fmtMBC(D.advCon)+') &nbsp;·&nbsp; thực tế còn treo <b>'+
+      '<div class="title">8. HỒ SƠ TẠM ỨNG</div>'+
+      '<div class="period">'+(D.adv.length?
+        '<b>'+fmtN(D.adv.length)+' hồ sơ</b> còn phải theo dõi ('+fmtMBC(D.advCon)+' tạm ứng chưa thu hồi)'+
+        ' &nbsp;·&nbsp; thực tế còn treo <b>'+
         (D.advTreoN?fmtN(D.advTreoN)+' hồ sơ / '+fmtMBC(D.advTreoTien):'0 hồ sơ')+'</b>'+
-        (D.advSetN?' &nbsp;·&nbsp; '+fmtN(D.advSetN)+' hồ sơ đã khấu trừ khi trả nốt ('+fmtMBC(D.advSetTien)+')':'')+
+        (D.advSetN?' &nbsp;·&nbsp; '+fmtN(D.advSetN)+' hồ sơ đã khấu trừ khi trả nốt ('+fmtMBC(D.advSetTien)+')':'')
+        :'<b>Không còn hồ sơ tạm ứng nào phải theo dõi</b>')+
+        (D.advDone?' &nbsp;·&nbsp; đã loại '+fmtN(D.advDone)+' hồ sơ tất toán xong':'')+
       '</div>'+
     '</div>'+
     '<div class="gdv-table-outer" style="max-height:380px;overflow-y:auto">'+
@@ -4934,16 +4941,19 @@ function debtSection(s){
           '<th class="lv3" style="width:120px">Đã bồi thường</th>'+
           '<th class="lv3" style="min-width:120px">Trạng thái HS</th>'+
         '</tr></thead>'+
-        '<tbody>'+advRows+'</tbody>'+
+        '<tbody>'+(advRows||'<tr><td colspan="10" style="text-align:center;padding:20px;color:var(--text2)">'+
+          'Không có hồ sơ tạm ứng nào phải theo dõi.</td></tr>')+'</tbody>'+
       '</table>'+
     '</div>'+
     '<div class="gdv-report-footer">Gồm cả tạm ứng cho khách hàng và cho gara. '+
       '<b>Còn phải trả</b> = Tiền ước/duyệt BT − Tiền TƯ cho KH &nbsp;·&nbsp; '+
       '<b>Đã bồi thường</b> = Tiền BT đã trả cho KH. Hai cột bằng nhau nghĩa là tạm ứng đã được '+
       'khấu trừ khi trả nốt (tiền ước chưa VAT, tiền thực trả đã gồm VAT nên có thể lệch). '+
+      '<b>Đã loại</b> hồ sơ vừa có Tiền BT đã trả cho KH vừa có Số ngày tồn = 0 (đã tất toán)'+
+      (D.advDone?' — '+fmtN(D.advDone)+' hồ sơ':'')+'. '+
       '<span style="color:#dc2626;font-weight:700">■</span> treo ≥60 ngày &nbsp;'+
       '<span style="color:#d97706;font-weight:700">■</span> 30–59 ngày.</div>'+
-  '</div>':'');
+  '</div>';
 }
 
 /* ── 12. CHẤT LƯỢNG DỮ LIỆU KHAI BÁO ─────────────────────────────────────────
@@ -5389,7 +5399,7 @@ function cldvActionSection(s){
     own:'Hệ thống tự động',cls:'own-sys',kpi:'Không còn hồ sơ đã duyệt BT quá 30 ngày chưa chi trả',ky:'Tuần',lv:'md',
     act:'Lấy danh sách ở mục 8 tab Kiểm soát rủi ro làm bảng theo dõi tuần: mỗi hồ sơ phải ghi rõ vướng ở đâu (thiếu số tài khoản, chờ hoá đơn, chờ xác nhận khách) và ngày dự kiến chi trả.'});
   if(D.adv.length)riskIdeas.push({t:'Thu hồi tạm ứng đúng hạn',
-    can:fmtN(D.adv.length)+' HS còn '+fmtMBC(D.advCon)+' tạm ứng chưa thu hồi',
+    can:fmtN(D.adv.length)+' HS còn '+fmtMBC(D.advCon)+' tạm ứng chưa thu hồi (chưa tất toán)',
     own:'Make',cls:'own-make',kpi:'100% tạm ứng được thu hồi hoặc quyết toán trong 30 ngày',ky:'Tháng',lv:'md',
     act:'Gắn mỗi khoản tạm ứng với một mốc quyết toán cụ thể; GĐV báo cáo tiến độ thu hồi trong họp tuần.'});
   if(R.c4||R.cus.length)riskIdeas.push({t:'Khuyến nghị tái tục cho xe/khách nhiều vụ',
