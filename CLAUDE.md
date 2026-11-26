@@ -94,7 +94,7 @@ Cột quan trọng:
 | **Kiểm soát rủi ro** | `tab-ruiro` | 1. Giảm trừ theo lý do · 2. Tổng hợp dấu hiệu cần rà soát · 3. DS hồ sơ cần rà soát (top 100) · 4. DS hồ sơ có giảm trừ (top 60) · 5. Tần suất tổn thất theo xe · 6. Khách hàng ≥5 hồ sơ · 7. Công nợ · 8. Hồ sơ tạm ứng. ⚠️ Mục 2–3 chỉ nêu **dấu hiệu cần rà soát**, không kết luận trục lợi — `.note-box` đầu tab **không được bỏ** |
 | **Đề xuất cải tiến CLDV** | `tab-cldv` | 4 **nhóm giải pháp** (11/2026 đổi nhãn "Trục" → "Nhóm giải pháp" cho dễ hiểu): Chất lượng dịch vụ · Hiệu quả & Năng suất · Quan hệ khách hàng · **Liên thông số liệu** (`cldvActionSection(s)`) đặt ngay trước khối Kết luận; hàm `renderCLDV(s)` |
 | Tra cứu tiến trình | `tab-search` | **Không có nút tab** (11/2026) — vào từ menu thả xuống (`openSearchTab()`). Nội dung giữ nguyên: tra theo Biển kiểm soát / Số HSBT + lọc gara, GĐV, trạng thái; nút 📥 Tải Excel |
-| Tiện ích | `tab-tienich` | **Không có nút tab** — vào từ menu thả xuống (`openTienichTab()`). Bảng liên kết công cụ hỗ trợ giám định, dựng từ mảng `UTIL_LINKS` |
+| Tiện ích | `tab-tienich` | **Không có nút tab** — vào từ menu thả xuống (`openTienichTab()`). Bảng liên kết công cụ hỗ trợ giám định, dựng từ mảng `UTIL_LINKS` + hộp **nạp bảng tra số HSBT → Id** (`claimBoxHTML()`, xem mục "Liên kết số HSBT") |
 
 > **Tối ưu hoá 11/2026 — từ 8 nút tab còn 5.** Nguyên tắc: mỗi đối tượng chỉ còn **một** bảng, biểu đồ nào lặp lại đúng nội dung bảng ngay cạnh thì bỏ.
 > - **Tab bị xoá**: `tab-overview` (nội dung chuyển vào `#pane-overview` trong tab Tổng quan) và `tab-baocao` (BC1→BC4 gộp thành `garageSection()`, BC2+BC3 gộp vào `tonListSection()`). Hàm `renderBaoCao()` **đã xoá hẳn**.
@@ -463,6 +463,8 @@ Dùng `localStorage` với 3 key:
 
 Trợ lý GĐV dùng thêm 2 key riêng (không bị "↩ Tải file khác" xoá): `pti_ai_log` (hội thoại, tối đa 40 tin, HTML đã render) và `pti_ai_gdv` (mã "GĐV của tôi").
 
+Liên kết hồ sơ dùng thêm 1 key riêng (cũng không bị xoá khi đổi file): `pti_claim_ids` — bảng tra `{số HSBT: Id}` sang hệ thống BTXCG, xem mục "Liên kết số HSBT".
+
 - Khi tải file → tự động lưu cả 3 key
 - Khi mở lại trang → nút "🔄 Khôi phục" xuất hiện, tự restore + hiện lại badge
 - "↩ Tải file khác" → xoá cache, quay về upload
@@ -489,6 +491,74 @@ Khối chữ mờ ở **góc dưới bên trái mọi màn hình** (đăng nhậ
 - ⚠️ **Quy tắc bảo mật — kẽ hở đã vá, đừng viết lại bản cũ**: bản đầu dùng `!data.exists() || newData.val() == data.val() + 1`, nghĩa là khi `stats/views` còn **rỗng** thì ghi được **số bất kỳ** (đã dẫm phải thật: một lệnh thử đặt nhầm thành 9999 và chính mình cũng không xoá được, phải vào Console xoá nhánh `stats`). Bản đang dùng bắt buộc **rỗng → chỉ nhận đúng 1**, có rồi → chỉ cộng 1; nhánh `online` thêm `newData.child('t').val() <= now + 60000` để không ai cắm được phiên "sống mãi". Toàn văn ở `docs/bo-dem-truy-cap.md`.
 - ⚠️ **Đổi quy tắc xong phải chờ vài phút** mới có hiệu lực (Google ghi rõ "several minutes to fully propagate") — kiểm ngay sau khi Publish sẽ thấy quy tắc **cũ** còn chạy và tưởng là publish hỏng. Kiểm nhanh không cần trình duyệt: `curl -s "<databaseURL>/stats/views.json"` và `curl -s -X PUT --data '<số>' "<databaseURL>/stats/views.json"`.
 - Bộ đếm **chỉ gửi đi** 1 nhịp "đang mở trang" và lệnh cộng 1 — không gửi dữ liệu hồ sơ hay thông tin người dùng. Giữ nguyên tính chất này khi sửa.
+
+## Liên kết số HSBT sang hệ thống BTXCG (26/11/2026)
+
+Mọi **Số HSBT** in ra trong các khung dữ liệu đều là liên kết bấm được, trỏ sang
+`https://btxcg.pti.com.vn/ClaimCar/`. Hai chế độ:
+
+| Chế độ | Khi nào | Hành vi |
+|---|---|---|
+| **Tra cứu + sao chép** (mặc định) | hồ sơ chưa có `Id` trong bảng tra | `href` = `ClaimCar/SearchClaim`, mở tab mới; cú bấm đồng thời **sao chép số HSBT** vào clipboard + hiện toast nhắc dán vào ô *Số HSBT*. Mũi tên `↗` mờ |
+| **Mở trực tiếp** | hồ sơ đã có `Id` | `href` = `ClaimCar/DetailClaim?Id=…`. Mũi tên `↗` xanh (`.hsbt-link.has-id`) |
+
+### ⚠️ Vì sao KHÔNG tự dựng được URL `DetailClaim` từ số HSBT (đã đo, đừng thử lại)
+
+- Giải base64 chuỗi `Id` mẫu thật ra đúng **48 byte = 3 khối 16 byte**, khớp PKCS#7 của số HSBT
+  41 ký tự → **ciphertext AES, khoá nằm trên máy chủ PTI**.
+- Thử giả thuyết mã hoá luồng (`C = P XOR K`) với cặp plaintext/ciphertext đã biết: keystream ra
+  toàn rác → không suy được khoá từ một cặp (nếu là XOR/RC4 khoá cố định thì 1 cặp là đủ để sinh
+  mọi `Id` — đã loại trừ khả năng này).
+- `Dulieu.xlsx` **không có cột Id** và **không có hyperlink** (`xl/worksheets/_rels/sheet1.xml.rels`
+  chỉ có `printerSettings`).
+- `SearchClaim` nằm sau **SSO Pomerium + Keycloak** (302 → `iapv2.ipas.com.vn`), nên cũng không dò
+  được tên tham số tìm kiếm truyền qua URL.
+→ Muốn có liên kết trực tiếp thì **phải nạp bảng tra**, không có đường tính toán.
+
+### Bảng tra `pti_claim_ids`
+
+- Lưu `{SỐ HSBT (in hoa): Id}` trong **localStorage của từng máy** — **không commit vào repo**,
+  vì GitHub Pages là trang công khai (đăng nhập của trang chỉ kiểm tra phía trình duyệt).
+- Nạp từ hộp ở **tab Tiện ích**: dán text, mỗi dòng 1 hồ sơ — nhận `HSBT<TAB>Id`,
+  `HSBT <khoảng trắng> URL DetailClaim?Id=…`, hoặc dán cả khối. `Id` có `%` được `decodeURIComponent`
+  trước khi lưu (lúc dựng URL thì `encodeURIComponent` lại).
+- Cách lấy hàng loạt: `CLAIM_SNIPPET` — đoạn mã dán vào **F12 → Console** của trang danh sách BTXCG
+  (`SearchClaim` hoặc `ExistClaim`), quét mọi `<tr>`, ghép (số HSBT trong `innerText`) với (`Id` trong
+  `innerHTML` của dòng) rồi `copy()` ra clipboard. Viết **tổng quát theo nội dung**, không theo DOM cụ
+  thể của trang PTI (không truy cập được để dò) — nhờ vậy lấy được cả dòng mở hồ sơ bằng `onclick`
+  chứ không phải `<a href>`. Đặt vào trang bằng `textContent` để không phải escape HTML.
+- ⚠️ Đoạn mã **tự báo kết quả** (`✓ Đã sao chép N hồ sơ` / `✗ Không lấy được cặp nào` kèm số dòng `<tr>`,
+  số dòng có HSBT, số dòng có link) — chạy im lặng thì người dùng không biết nó có chạy không.
+  Đã kiểm 2 nhánh bằng trang giả lập: 3/3 cặp (có cả dòng `onclick`), và nhánh chẩn đoán khi trang
+  không có `DetailClaim` trong HTML.
+- ⚠️ **Hai thứ KHÔNG phải lỗi của đoạn mã**, đã ghi sẵn trong hộp hướng dẫn vì người dùng đã báo nhầm
+  một lần (26/11/2026): (1) Console của trang BTXCG sẵn có dòng đỏ `Failed to load resource … 
+  Mulish-Regular.ttf 404` — trang PTI thiếu file phông chữ; (2) lần đầu dán vào Console, Chrome bắt
+  gõ tay `allow pasting` rồi mới cho dán.
+
+### Hàm & cạm bẫy
+
+| Thành phần | Vai trò |
+|---|---|
+| `CLAIM_RE` | `/\d{5,9}\/[0-9A-Za-z._-]+(?:\/[0-9A-Za-z._-]+){1,4}\/[A-Z]{2}\/\d{4}/g` + kiểm `includes('/BT/')`. ⚠️ Đuôi nghiệp vụ **không chỉ `XO`** — dữ liệu thật có `…/BT/013-02/XM/2025`; và có dạng ngắn `0001423/BT/000-013/XO/2026` (22 HS) |
+| `linkifyClaims(root)` | Bọc text node khớp regex. **Chạy `_clLinkTitled(root)` trước** |
+| `_clLinkTitled(root)` | ⚠️ **Cạm bẫy chính**: 5 bảng in số HSBT đã **cắt ngắn** `cutTxt(hsbt,22)` và giữ số đầy đủ ở `title=` (bảng tồn tab Tiến độ, DS cần rà soát / có giảm trừ, công nợ, tạm ứng) → text hiển thị **không khớp** `CLAIM_RE`. Hàm này bọc theo `title`, link giữ nguyên chữ đang hiển thị, số đầy đủ vào `data-hsbt`. Chỉ xử lý ô có đúng 1 text node con |
+| `claimLinkInit()` | Quét `#dashboard` 1 lượt rồi gắn **MutationObserver** (debounce 90ms, cờ `_clBusy` chống tự kích hoạt) + 1 listener click uỷ quyền. Nhờ observer, bảng dựng sau (tab Tra cứu, thẻ hồ sơ Trợ lý GĐV) tự có link mà **không phải sửa từng hàm render**. Gọi ở cuối `renderAll()` |
+| `claimRelink()` | Gỡ lớp `<a>` rồi quét lại sau khi nạp/xoá bảng tra. ⚠️ Khi gỡ phải trả lại **`a.textContent`** (chữ đang hiển thị), không phải `data-hsbt` — ô cắt ngắn sẽ dài ra và phá bề ngang bảng |
+| `claimLoadIds()` · `claimClearIds()` · `claimUpdateCount()` | Nạp / xoá / đếm bảng tra |
+| `.hsbt-link` | Gạch chân nét đứt + `::after` mũi tên, **màu kế thừa ô** — cố ý không dùng nền màu để không phá sọc ngựa vằn và các ô tô cảnh báo của bảng. `@media print` bỏ gạch chân và mũi tên |
+
+- Trang **không gửi gì** sang hệ thống BTXCG ngoài cú mở tab của chính người dùng; bảng tra không ra khỏi máy.
+- `CLAIM_SKIP` loại `a,script,style,textarea,option,button,select,.claim-box` — nhờ vậy ô dán và đoạn
+  mã trong hộp Tiện ích không bị bọc link, và thao tác là **idempotent** (text đã nằm trong `<a>` bị bỏ qua).
+
+### Đo thật (dữ liệu 10/2026 — 2.200 HS, Chrome headless)
+
+**2.463 liên kết / 2.133 hồ sơ khác nhau** ngay sau `renderAll()`, **0 ô còn số HSBT dạng text trơ**;
+tab Tra cứu và Trợ lý GĐV dựng sau cũng được bọc (tổng 2.465). Nạp bảng tra 2 cặp → 3 link đổi sang
+`DetailClaim` đúng (`%2f` → `%2F`, tương đương theo chuẩn URL), `nested = 0` (không có link lồng),
+`renderAll()` lần 2 không nhân bản link. `overflowX = 0` ở 1600 / 1280 / 1100 / 780px và ở 390px
+(iframe), **0 lỗi JS** ở mọi bước.
 
 ## Thiết kế UI hiện tại (quan trọng — không thay đổi tuỳ tiện)
 

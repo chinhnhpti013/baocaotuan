@@ -1045,6 +1045,46 @@ table.ig-hs tr:nth-child(even) td{background:var(--surface2)}
   .tl-form{gap:6px}
 }
 @media print{.tl-fab,.tl-panel{display:none!important}}
+
+/* ─── LIÊN KẾT HỒ SƠ SANG HỆ THỐNG BTXCG ─────────────────────────────────────
+   Số HSBT trong mọi bảng được bọc thành .hsbt-link (xem linkifyClaims()).
+   Dùng gạch chân nét đứt thay màu nền để không phá sọc ngựa vằn / tô cảnh báo
+   của các bảng; màu kế thừa ô nên bảng nào cũng hợp tông. */
+.hsbt-link{color:inherit;text-decoration:underline dotted;text-underline-offset:2px;
+  text-decoration-color:rgba(21,101,192,.55);cursor:pointer;transition:color .15s,background .15s}
+.hsbt-link:hover{color:#0b4ea2;background:rgba(21,101,192,.1);border-radius:3px;
+  text-decoration:underline solid;text-decoration-color:#1565C0}
+.hsbt-link::after{content:"↗";font-size:.68em;margin-left:3px;opacity:.5;vertical-align:super}
+.hsbt-link.has-id::after{content:"↗";opacity:.95;color:#047857}
+@media print{.hsbt-link{text-decoration:none}.hsbt-link::after{content:""}}
+
+/* Thông báo nhỏ khi sao chép số HSBT / mở hồ sơ */
+.claim-toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);z-index:1200;
+  max-width:min(560px,92vw);padding:11px 16px;border-radius:12px;font-size:.84rem;line-height:1.45;
+  background:#0f172a;color:#f1f5f9;box-shadow:0 10px 32px rgba(0,0,0,.3);
+  opacity:0;visibility:hidden;transition:opacity .2s,transform .2s,visibility .2s}
+.claim-toast.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
+.claim-toast b{color:#fcd34d}
+.claim-toast .ct-ok{color:#6ee7b7}
+
+/* Hộp nạp bảng tra Id (tab Tiện ích) */
+.claim-box{margin-top:18px;border:2px dashed #c7d2fe;border-radius:12px;background:#fff;padding:14px 16px}
+.claim-box h4{margin:0 0 6px;font-size:.95rem;color:#3730a3}
+.claim-box p{margin:0 0 8px;font-size:.78rem;color:var(--text2);line-height:1.55}
+.claim-box ol{margin:0 0 10px 18px;font-size:.78rem;color:var(--text2);line-height:1.7}
+.claim-box textarea{width:100%;min-height:92px;border:1px solid #cbd5e1;border-radius:8px;padding:8px 10px;
+  font-family:'JetBrains Mono',monospace;font-size:.72rem;resize:vertical}
+.claim-box code{background:#f1f5f9;border-radius:4px;padding:1px 5px;font-size:.72rem;word-break:break-all}
+.claim-snippet{display:block;background:#0f172a;color:#a5f3fc;border-radius:8px;padding:10px 12px;
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;line-height:1.5;white-space:pre-wrap;
+  word-break:break-all;margin:0 0 10px}
+.claim-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:9px}
+.claim-act button{border:none;border-radius:8px;padding:8px 14px;font-size:.78rem;font-weight:600;
+  cursor:pointer;font-family:inherit}
+.claim-load{background:linear-gradient(160deg,#818cf8,#3730a3);color:#fff}
+.claim-clear{background:#e2e8f0;color:#334155}
+.claim-count{font-size:.76rem;color:var(--text2)}
+.claim-count b{color:#047857}
 </style>
 </head>
 <body>
@@ -2234,6 +2274,7 @@ function renderAll(){
   renderCLDV(s);renderSearch();
   renderTienich();
   fitTopTabs();
+  claimLinkInit();            // bọc số HSBT thành liên kết sang hệ thống BTXCG
   // Tải sheet TLBT + sheet doanh thu theo kênh song song (không block render chính)
   loadTlbtSheet();
   loadKenhSheet();
@@ -3435,7 +3476,10 @@ function renderTienich(){
       </div>
       <p class="util-note">Các tiện ích trên là trang web độc lập, cần kết nối internet. Dữ liệu hồ sơ
         của dashboard này <b>không</b> được gửi sang các tiện ích đó.</p>
-    </div>`;
+    </div>`+claimBoxHTML();
+  // Đoạn mã Console đặt bằng textContent (không qua innerHTML) để không phải escape
+  const sn=document.getElementById('claim-snippet'); if(sn) sn.textContent=CLAIM_SNIPPET;
+  claimUpdateCount();
 }
 
 // Sao chép liên kết — có nhánh dự phòng cho trang mở bằng file:// (Clipboard API bị chặn)
@@ -3451,6 +3495,300 @@ function utilCopy(url,btn){
   document.body.appendChild(ta);ta.select();
   let ok=false;try{ok=document.execCommand('copy')}catch(e){}
   document.body.removeChild(ta);done(ok);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════
+   LIÊN KẾT HỒ SƠ SANG HỆ THỐNG BTXCG (https://btxcg.pti.com.vn/ClaimCar/)
+   Mọi số HSBT in ra trong các khung dữ liệu được bọc thành <a class="hsbt-link">.
+
+   ⚠️ VÌ SAO KHÔNG DỰNG THẲNG ĐƯỢC URL DetailClaim TỪ SỐ HSBT (đã đo 26/11/2026):
+   tham số Id của .../ClaimCar/DetailClaim?Id=… KHÔNG phải số HSBT mã hoá base64 mà
+   là bản mã hoá phía máy chủ. Giải base64 mẫu thật ra đúng 48 byte = 3 khối 16 byte,
+   khớp PKCS#7 của số HSBT 41 ký tự → ciphertext AES, khoá nằm trên máy chủ PTI.
+   Thử giả thuyết mã hoá luồng (C = P XOR K) với cặp đã biết: keystream ra toàn rác
+   → không suy được khoá từ một cặp. Dulieu.xlsx cũng không có cột Id và không có
+   hyperlink. Trang SearchClaim nằm sau SSO (Pomerium + Keycloak) nên cũng không dò
+   được tên tham số tìm kiếm truyền qua URL.
+   → Hai chế độ hoạt động của liên kết:
+     1. Hồ sơ đã có Id trong BẢNG TRA (người dùng tự nạp, lưu localStorage)
+        → href đi thẳng tới DetailClaim, mũi tên ↗ màu xanh.
+     2. Chưa có Id → href mở trang SearchClaim, đồng thời SAO CHÉP số HSBT vào
+        clipboard để dán vào ô tìm kiếm (toast nhắc).
+   Bảng tra chỉ nằm trên máy người dùng (localStorage) — KHÔNG commit vào repo,
+   vì trang GitHub Pages là công khai.
+   ═════════════════════════════════════════════════════════════════════════════ */
+const CLAIM_BASE='https://btxcg.pti.com.vn/ClaimCar/';
+const CLAIM_SEARCH=CLAIM_BASE+'SearchClaim';
+const CLAIM_DETAIL=CLAIM_BASE+'DetailClaim?Id=';
+const CLAIM_LS='pti_claim_ids';
+/* Các dạng số HSBT có thật trong dữ liệu (đã đếm trên Dulieu.xlsx 10/2026):
+     0067994/000-013/0001856/BT/013-VNPOST/XO/2026   (2.178 HS)
+     0001423/BT/000-013/XO/2026                      (22 HS)
+     0000055/000-/0000004/BT/013-02/XM/2025          (đuôi nghiệp vụ không chỉ XO) */
+const CLAIM_RE=/\d{5,9}\/[0-9A-Za-z._-]+(?:\/[0-9A-Za-z._-]+){1,4}\/[A-Z]{2}\/\d{4}/g;
+const CLAIM_RE1=new RegExp(CLAIM_RE.source);
+function isClaimNo(t){return !!t&&t.indexOf('/BT/')>=0&&CLAIM_RE1.test(t)}
+function clEsc(t){return String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+// ── Bảng tra số HSBT → Id (localStorage) ─────────────────────────────────────
+let _claimMap=null;
+function claimMap(){
+  if(_claimMap) return _claimMap;
+  let m={};
+  try{ const j=JSON.parse(localStorage.getItem(CLAIM_LS)||'{}'); if(j&&typeof j==='object') m=j; }catch(e){}
+  _claimMap=m; return m;
+}
+function claimMapSave(m){
+  _claimMap=m;
+  try{ localStorage.setItem(CLAIM_LS,JSON.stringify(m)); }catch(e){}
+}
+function claimKey(hs){return String(hs||'').trim().toUpperCase()}
+function claimIdOf(hs){const v=claimMap()[claimKey(hs)];return typeof v==='string'&&v?v:''}
+function claimMapCount(){return Object.keys(claimMap()).length}
+
+// ── Thông báo nhỏ ────────────────────────────────────────────────────────────
+let _clToastTid=0;
+function claimToast(html,ms){
+  let el=document.getElementById('claim-toast');
+  if(!el){ el=document.createElement('div'); el.id='claim-toast'; el.className='claim-toast';
+           el.setAttribute('role','status'); document.body.appendChild(el); }
+  el.innerHTML=html;
+  requestAnimationFrame(()=>el.classList.add('show'));
+  clearTimeout(_clToastTid);
+  _clToastTid=setTimeout(()=>el.classList.remove('show'),ms||6000);
+}
+// Sao chép — có nhánh dự phòng cho trang mở bằng file:// (Clipboard API bị chặn)
+function claimCopy(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    return navigator.clipboard.writeText(text).then(()=>true,()=>_clCopyFallback(text));
+  return Promise.resolve(_clCopyFallback(text));
+}
+function _clCopyFallback(text){
+  const ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  let ok=false;try{ok=document.execCommand('copy')}catch(e){}
+  document.body.removeChild(ta);return ok;
+}
+
+// ── Bọc số HSBT thành liên kết ───────────────────────────────────────────────
+// Dùng MutationObserver nên mọi bảng (kể cả bảng dựng sau, bảng của Trợ lý GĐV)
+// đều được bọc mà không phải sửa từng hàm render. Thao tác idempotent: text đã nằm
+// trong <a> sẽ bị bỏ qua ở lần quét sau.
+const CLAIM_SKIP='a,script,style,textarea,option,button,select,.claim-box';
+function _clLinkText(n){
+  const t=n.nodeValue;
+  if(!t||t.length<20||t.indexOf('/BT/')<0) return;
+  const pe=n.parentElement;
+  if(!pe||pe.closest(CLAIM_SKIP)) return;
+  CLAIM_RE.lastIndex=0;
+  let m,last=0,hit=false;const frag=document.createDocumentFragment();
+  while((m=CLAIM_RE.exec(t))){
+    if(m[0].indexOf('/BT/')<0) continue;
+    hit=true;
+    if(m.index>last) frag.appendChild(document.createTextNode(t.slice(last,m.index)));
+    frag.appendChild(_clMakeLink(m[0]));
+    last=m.index+m[0].length;
+  }
+  if(!hit) return;
+  if(last<t.length) frag.appendChild(document.createTextNode(t.slice(last)));
+  n.parentNode.replaceChild(frag,n);
+}
+function _clMakeLink(hs){
+  const a=document.createElement('a');
+  a.className='hsbt-link';a.textContent=hs;a.dataset.hsbt=hs;
+  a.target='_blank';a.rel='noopener noreferrer';
+  const id=claimIdOf(hs);
+  if(id){ a.href=CLAIM_DETAIL+encodeURIComponent(id); a.classList.add('has-id');
+          a.title='Mở trực tiếp hồ sơ '+hs+' trên hệ thống BTXCG'; }
+  else  { a.href=CLAIM_SEARCH;
+          a.title='Sao chép số HSBT '+hs+' và mở trang Tra cứu hồ sơ của hệ thống BTXCG (dán vào ô Số HSBT)'; }
+  return a;
+}
+/* Nhiều bảng in số HSBT đã CẮT NGẮN — cutTxt(hsbt,22) — và giữ số đầy đủ ở title=
+   (bảng tồn ở tab Tiến độ, DS cần rà soát / có giảm trừ ở tab Kiểm soát rủi ro, công nợ,
+   tạm ứng). Text hiển thị không khớp CLAIM_RE nên phải bọc theo title: link giữ nguyên
+   chữ đang hiển thị, còn số đầy đủ đi vào data-hsbt. */
+function _clLinkTitled(root){
+  const list=[];
+  if(root.hasAttribute&&root.hasAttribute('title')) list.push(root);
+  if(root.querySelectorAll) root.querySelectorAll('[title]').forEach(e=>list.push(e));
+  list.forEach(el=>{
+    const hs=(el.getAttribute('title')||'').trim();
+    if(!isClaimNo(hs)) return;
+    if(el.closest(CLAIM_SKIP)) return;
+    if(el.childNodes.length!==1||el.firstChild.nodeType!==3) return;   // chỉ ô chỉ có text
+    const txt=el.firstChild.nodeValue;
+    if(!txt||!txt.trim()) return;
+    const a=_clMakeLink(hs);
+    a.textContent=txt;                        // giữ nguyên chữ đang hiển thị (bản cắt ngắn)
+    el.replaceChild(a,el.firstChild);
+  });
+}
+function linkifyClaims(root){
+  if(!root) return;
+  if(root.nodeType===3){ _clLinkText(root); return; }
+  if(root.nodeType!==1) return;
+  if(root.closest&&root.closest(CLAIM_SKIP)) return;
+  _clLinkTitled(root);                        // bọc trước: text bên trong đã vào <a> nên TreeWalker bỏ qua
+  const nodes=[];
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode(n){
+    const t=n.nodeValue;
+    return (t&&t.length>=20&&t.indexOf('/BT/')>=0)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;
+  }});
+  while(w.nextNode()) nodes.push(w.currentNode);
+  nodes.forEach(_clLinkText);
+}
+// Bọc lại toàn bộ (sau khi nạp/xoá bảng tra): gỡ lớp <a> cũ rồi quét lại
+function claimRelink(){
+  const root=document.getElementById('dashboard'); if(!root) return;
+  _clBusy=true;
+  try{
+    root.querySelectorAll('a.hsbt-link').forEach(a=>{
+      a.replaceWith(document.createTextNode(a.textContent||a.dataset.hsbt||''));
+    });
+    root.normalize();
+    linkifyClaims(root);
+  }catch(e){}
+  _clBusy=false;
+}
+let _clBusy=false,_clObs=null,_clTid=0,_clQueue=[];
+function claimLinkInit(){
+  const root=document.getElementById('dashboard'); if(!root) return;
+  _clBusy=true; try{ linkifyClaims(root) }catch(e){} _clBusy=false;
+  if(_clObs) return;                                  // chỉ gắn observer + listener 1 lần
+  _clObs=new MutationObserver(ms=>{
+    if(_clBusy) return;
+    for(const mu of ms) for(const n of mu.addedNodes)
+      if(n.nodeType===1||n.nodeType===3) _clQueue.push(n);
+    if(!_clQueue.length) return;
+    clearTimeout(_clTid);
+    _clTid=setTimeout(()=>{
+      const q=_clQueue;_clQueue=[];_clBusy=true;
+      try{ q.forEach(n=>{ if(n.isConnected) linkifyClaims(n) }) }catch(e){}
+      _clBusy=false;
+    },90);
+  });
+  _clObs.observe(root,{childList:true,subtree:true});
+  document.addEventListener('click',e=>{
+    const a=e.target&&e.target.closest?e.target.closest('a.hsbt-link'):null;
+    if(!a) return;
+    const hs=a.dataset.hsbt||'';
+    if(a.classList.contains('has-id')){
+      claimToast('Đang mở hồ sơ <b>'+clEsc(hs)+'</b> trên hệ thống BTXCG ở tab mới.',4000);
+      return;                                         // href đã trỏ thẳng DetailClaim
+    }
+    claimCopy(hs).then(ok=>{
+      claimToast(ok
+        ?'<span class="ct-ok">✓ Đã sao chép số HSBT</span> <b>'+clEsc(hs)+'</b> — dán (Ctrl+V) vào ô <b>Số HSBT</b> trên trang Tra cứu vừa mở rồi bấm Tìm kiếm.'
+        :'Không sao chép tự động được. Số HSBT cần tra: <b>'+clEsc(hs)+'</b>',9000);
+    });
+  });
+  claimUpdateCount();
+}
+
+// ── Nạp bảng tra Id (hộp ở tab Tiện ích) ─────────────────────────────────────
+// Đoạn mã dán vào Console của trang BTXCG: quét mọi <tr> của bảng kết quả, lấy cặp
+// (số HSBT, Id) từ đường dẫn DetailClaim có trong dòng. Viết tổng quát theo nội dung
+// chứ không theo DOM cụ thể của trang PTI (không truy cập được để dò).
+const CLAIM_SNIPPET=
+"(function(){\n"+
+"  var RE=/\\d{5,9}\\/[0-9A-Za-z._-]+(?:\\/[0-9A-Za-z._-]+){1,4}\\/[A-Z]{2}\\/\\d{4}/;\n"+
+"  var out=[], rows=document.querySelectorAll('tr'), hasHs=0, hasId=0;\n"+
+"  rows.forEach(function(r){\n"+
+"    var m=(r.innerText||'').match(RE);\n"+
+"    var i=((r.innerHTML||'').match(/DetailClaim[^\"'<>]*Id=([^\"'&<>\\s]+)/)||[])[1];\n"+
+"    if(m) hasHs++; if(i) hasId++;\n"+
+"    if(m&&i) out.push(m[0]+String.fromCharCode(9)+i);\n"+
+"  });\n"+
+"  if(out.length){ copy(out.join(String.fromCharCode(10)));\n"+
+"    console.log('%c\\u2713 Da sao chep '+out.length+' ho so. Quay lai dashboard, dan vao o roi bam Nap.','color:#16a34a;font-weight:bold');\n"+
+"  } else {\n"+
+"    console.log('%c\\u2717 Khong lay duoc cap nao.','color:#dc2626;font-weight:bold');\n"+
+"    console.log('Dong <tr> tren trang: '+rows.length+' | dong co so HSBT: '+hasHs+' | dong co link DetailClaim: '+hasId);\n"+
+"    console.log(hasHs&&!hasId ? 'Trang nay mo ho so bang JavaScript chu khong bang the <a href>, nen khong lay hang loat duoc. Hay mo tung ho so roi chep URL tren thanh dia chi.' : 'Hay tim kiem cho ra DANH SACH ho so truoc, roi chay lai doan nay.');\n"+
+"  }\n"+
+"})()";
+
+function claimBoxHTML(){
+  return `
+    <div class="claim-box">
+      <h4>🔗 Liên kết số HSBT sang hệ thống BTXCG</h4>
+      <p>Mọi <b>Số HSBT</b> trong các bảng của báo cáo đã là liên kết bấm được:</p>
+      <ol>
+        <li><b>Hồ sơ chưa có liên kết trực tiếp</b> (mũi tên ↗ mờ): bấm vào sẽ <b>sao chép số HSBT</b>
+            và mở trang <code>ClaimCar/SearchClaim</code> ở tab mới — chỉ cần dán (Ctrl+V) vào ô
+            <i>Số HSBT</i> rồi bấm Tìm kiếm.</li>
+        <li><b>Hồ sơ đã có liên kết trực tiếp</b> (mũi tên ↗ xanh): bấm là mở đúng trang
+            <code>DetailClaim</code> của hồ sơ đó.</li>
+      </ol>
+      <p>Hệ thống BTXCG mã hoá mã hồ sơ trong đường dẫn (<code>DetailClaim?Id=…</code>) ở phía máy chủ,
+        nên báo cáo <b>không thể tự tính ra</b> đường dẫn đó từ số HSBT. Muốn có liên kết trực tiếp thì
+        nạp một lần bảng tra dưới đây — bảng chỉ lưu <b>trên máy này</b> (localStorage), không gửi đi đâu
+        và không nằm trong mã nguồn trang.</p>
+      <p><b>Cách lấy:</b> mở <code>${CLAIM_SEARCH}</code> (hoặc trang <i>Tìm kiếm hồ sơ tồn</i>
+        <code>ClaimCar/ExistClaim</code>), tìm kiếm cho ra <b>danh sách hồ sơ</b> rồi mới bấm
+        <b>F12 → Console</b>, dán đoạn dưới đây vào dòng có dấu <code>&gt;</code> và Enter. Đoạn mã sẽ
+        báo ngay lấy được bao nhiêu hồ sơ; quay lại đây dán vào ô bên dưới và bấm Nạp.</p>
+      <p>⚠️ <b>Hai việc bình thường, không phải lỗi:</b> (1) Console của trang BTXCG sẵn có dòng đỏ
+        <code>Failed to load resource … Mulish-Regular.ttf 404</code> — trang PTI thiếu file phông chữ,
+        không liên quan gì đến đoạn mã này; (2) lần đầu dán vào Console, Chrome chặn và bắt gõ tay
+        <code>allow pasting</code> rồi Enter — gõ xong mới dán được.</p>
+      <code class="claim-snippet" id="claim-snippet"></code>
+      <div class="claim-act" style="margin:0 0 10px">
+        <button type="button" class="claim-clear" onclick="claimCopySnippet(this)">📋 Sao chép đoạn mã</button>
+      </div>
+      <textarea id="claim-paste" placeholder="Dán vào đây: mỗi dòng một hồ sơ, dạng&#10;0078461/000-090/0001063/BT/019-07/XO/2026&#9;M2IojP4pO50nHJlmDrGhzzo74tFq%2fCpKQR3DbUyhmTzomXBRgYal3KoMEzp2hrS5&#10;(cũng nhận dòng dán nguyên đường dẫn DetailClaim?Id=…)"></textarea>
+      <div class="claim-act">
+        <button type="button" class="claim-load" onclick="claimLoadIds()">⬇ Nạp vào bảng tra</button>
+        <button type="button" class="claim-clear" onclick="claimClearIds()">🗑 Xoá bảng tra</button>
+        <span class="claim-count" id="claim-count"></span>
+      </div>
+    </div>`;
+}
+function claimCopySnippet(btn){
+  const old=btn.textContent;
+  claimCopy(CLAIM_SNIPPET).then(ok=>{btn.textContent=ok?'✓ Đã sao chép':'✕ Không sao chép được';
+    setTimeout(()=>{btn.textContent=old},1600)});
+}
+function claimUpdateCount(){
+  const el=document.getElementById('claim-count'); if(!el) return;
+  const n=claimMapCount();
+  el.innerHTML=n?`Bảng tra đang có <b>${n.toLocaleString('vi-VN')}</b> hồ sơ có liên kết trực tiếp.`
+                :'Bảng tra đang trống — mọi liên kết sẽ mở trang Tra cứu kèm sao chép số HSBT.';
+}
+// Nhận mọi cách dán: "HSBT<TAB>Id", "HSBT <khoảng trắng> URL DetailClaim?Id=…", hoặc cả khối text
+function claimLoadIds(){
+  const ta=document.getElementById('claim-paste'); if(!ta) return;
+  const txt=ta.value||'';
+  if(!txt.trim()){ claimToast('Chưa có gì để nạp — hãy dán kết quả vào ô bên trên.',5000); return; }
+  const m=Object.assign({},claimMap());
+  let add=0,upd=0,bad=0;
+  txt.split(/[\r\n]+/).forEach(line=>{
+    if(!line.trim()) return;
+    CLAIM_RE.lastIndex=0;
+    const hs=(CLAIM_RE.exec(line)||[])[0];
+    if(!hs||hs.indexOf('/BT/')<0){ bad++; return; }
+    const rest=line.slice(line.indexOf(hs)+hs.length);
+    let id=(rest.match(/Id=([^&\s"'<>]+)/i)||[])[1]
+         ||(rest.match(/[A-Za-z0-9+%][A-Za-z0-9+/%=]{31,}/)||[])[0]||'';
+    if(!id){ bad++; return; }
+    try{ if(id.indexOf('%')>=0) id=decodeURIComponent(id); }catch(e){}
+    const k=claimKey(hs);
+    if(m[k]===id) return;
+    if(m[k]) upd++; else add++;
+    m[k]=id;
+  });
+  if(!add&&!upd){ claimToast('Không nhận được cặp số HSBT – Id nào'+(bad?` (${bad} dòng không đọc được)`:'')+'.',7000); return; }
+  claimMapSave(m); claimUpdateCount(); claimRelink(); ta.value='';
+  claimToast(`<span class="ct-ok">✓ Đã nạp bảng tra</span> — thêm <b>${add}</b>, cập nhật <b>${upd}</b> hồ sơ`
+    +(bad?`, bỏ qua ${bad} dòng không đọc được`:'')+`. Tổng cộng <b>${claimMapCount()}</b> hồ sơ có liên kết trực tiếp.`,9000);
+}
+function claimClearIds(){
+  if(!claimMapCount()){ claimToast('Bảng tra đang trống.',4000); return; }
+  if(!confirm('Xoá toàn bộ bảng tra số HSBT → Id trên máy này?\n\nSau khi xoá, các liên kết quay về chế độ sao chép số HSBT + mở trang Tra cứu.')) return;
+  claimMapSave({}); claimUpdateCount(); claimRelink();
+  claimToast('Đã xoá bảng tra trên máy này.',5000);
 }
 
 // ─── TAB SWITCH ──────────────────────────────────────────────────────────────
